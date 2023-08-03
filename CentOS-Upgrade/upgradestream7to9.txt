@@ -1,0 +1,98 @@
+#pre upgrade:
+
+yum update -y
+reboot (om ervoor te zorgen dat ie op de nieuwste kernel draait)
+yum install -y http://repo.almalinux.org/elevate/elevate-release-latest-el7.noarch.rpm
+cd /etc/yum.repos.d
+mv valuecare-mini.repo valuecare-mini.repo.org
+wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+yum -y reinstall epel-release-latest-7.noarch.rpm
+https://github.com/DigistateBV/centos7-repo.git
+
+
+
+yum clean all
+yum -y install dnf
+yum install -y leapp-upgrade leapp-data-centos
+yum install -y yum-utils
+package-cleanup --oldkernels --count=1
+leapp preupgrade
+leapp answer --section remove_pam_pkcs11_module_check.confirm=True
+
+leapp preupgrade
+leapp upgrade
+
+#post upgrade:
+
+reboot
+
+rpm -e `rpm -q kernel`
+
+
+dnf -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+
+dnf module -y disable postgresql
+dnf clean all
+dnf install -y postgresql15-server
+systemctl enable --now postgresql-15
+dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+dnf upgrade -y
+
+dnf remove -y yum-plugin-fastestmirror leapp elevate python2-leapp elevate-release leapp-data-centos btrfs-progs  --disableexcludes=all
+
+psql -c "ALTER DATABASE postgres REFRESH COLLATION VERSION"
+
+
+#update machine to centos 9
+
+dnf update -y --allowerasing
+dnf install -y http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-stream-repos-9.0-18.el9.noarch.rpm http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-stream-release-9.0-18.el9.noarch.rpm http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-gpg-keys-9.0-18.el9.noarch.rpm
+rm -f /etc/yum.repos.d/docker-ce.repo /etc/yum.repos.d/pgdg-redhat-all.repo
+yum remove  -y make-devel-1:4.2.1-11.el8.x86_64
+
+dnf -y --releasever=9-stream --allowerasing --setopt=deltarpm=false distro-sync
+rpm -e subscription-manager
+rpmdb --rebuilddb
+dnf clean packages
+dnf update -y
+dnf -y groupupdate "Core" "Minimal Install"
+rm -f /boot/vmlinuz-0-rescue-b2a198ecbfdd451cb905f76f825af01e /boot/initramfs-0-rescue-b2a198ecbfdd451cb905f76f825af01e.img /boot/loader/entries/b2a198ecbfdd451cb905f76f825af01e-0-rescue.conf
+/usr/lib/kernel/install.d/51-dracut-rescue.install add $(uname -r) /boot /boot/vmlinuz-$(uname -r)
+
+cd /etc/sysconfig/network-scripts/
+mv ifcfg-eth0 ifcfg-enX0
+sed -i 's/eth0/enX0/' ifcfg-enX0
+
+
+reboot
+rpm -q kernel-core
+dnf remove -y kernel-core-4.18.0-500.el8.x86_64
+
+
+dnf module reset -y nodejs perl perl-IO-Socket-SSL perl-libwww-perl php httpd python36
+
+dnf list --installed|grep el8
+
+dnf remove -y inih-56-1.el8 iwl6000-firmware mailx leapp-repository-deps-el8
+dnf install -y inih wget
+
+wget https://dl.rockylinux.org/pub/rocky/9/AppStream/x86_64/os/Packages/m/man-pages-overrides-9.0.0.0-1.el9.noarch.rpm 
+wget http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/libfido2-1.6.0-7.el9.x86_64.rpm
+wget http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/libcbor-0.7.0-5.el9.x86_64.rpm
+wget http://mirror.stream.centos.org/9-stream/AppStream/x86_64/os/Packages/javapackages-filesystem-6.0.0-3.el9.noarch.rpm
+wget https://kojihub.stream.centos.org/kojifiles/packages/xorg-x11-font-utils/7.5/53.el9/x86_64/xorg-x11-font-utils-7.5-53.el9.x86_64.rpm
+
+
+yum localinstall -y man-pages-overrides-9.0.0.0-1.el9.noarch.rpm libfido2-1.6.0-7.el9.x86_64.rpm libcbor-0.7.0-5.el9.x86_64.rpm javapackages-filesystem-6.0.0-3.el9.noarch.rpm xorg-x11-font-utils-7.5-53.el9.x86_64.rpm
+
+dnf -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+
+dnf module -y disable postgresql
+dnf clean all
+dnf install -y postgresql15-server
+systemctl enable --now postgresql-15
+dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+dnf upgrade -y
+
+
+psql -c "ALTER DATABASE postgres REFRESH COLLATION VERSION"
