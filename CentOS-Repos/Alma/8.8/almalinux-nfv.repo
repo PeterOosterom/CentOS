@@ -1,0 +1,27 @@
+# almalinux-nfv.repo
+
+[nfv]
+name=AlmaLinux $releasever - Real Time for NFV
+mirrorlist=https://mirrors.almalinux.org/mirrorlist/$releasever/nfv
+# baseurl=https://repo.almalinux.org/almalinux/$releasever/NFV/$basearch/os/
+enabled=0
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux
+
+## Sources
+[nfv-source]
+name=AlmaLinux $releasever - Real Time for NFV Sources
+mirrorlist=https://mirrors.almalinux.org/mirrorlist/$releasever/nfv-source
+# baseurl=https://repo.almalinux.org/vault/$releasever/NFV/Source/
+enabled=0
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux
+
+## Debuginfo
+[nfv-debuginfo]
+name=AlmaLinux $releasever - Real Time for NFV Debuginfo
+mirrorlist=https://mirrors.almalinux.org/mirrorlist/$releasever/nfv-debuginfo
+# baseurl=https://repo.almalinux.org/vault/$releasever/NFV/debug/$basearch/
+enabled=0
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux

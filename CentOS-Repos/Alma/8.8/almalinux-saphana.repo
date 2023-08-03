@@ -1,0 +1,28 @@
+# almalinux-saphana.repo
+
+[saphana]
+name=AlmaLinux $releasever - SAP HANA
+mirrorlist=https://mirrors.almalinux.org/mirrorlist/$releasever/saphana
+# baseurl=https://repo.almalinux.org/almalinux/$releasever/SAPHANA/$basearch/os/
+enabled=0
+gpgcheck=1
+countme=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux
+
+## Sources
+[saphana-source]
+name=AlmaLinux $releasever - SAP HANA Sources
+mirrorlist=https://mirrors.almalinux.org/mirrorlist/$releasever/saphana-source
+# baseurl=https://repo.almalinux.org/vault/$releasever/SAPHANA/Source/
+enabled=0
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux
+
+## Debuginfo
+[saphana-debuginfo]
+name=AlmaLinux $releasever - SAP HANA Debuginfo
+mirrorlist=https://mirrors.almalinux.org/mirrorlist/$releasever/saphana-debuginfo
+# baseurl=https://repo.almalinux.org/vault/$releasever/SAPHANA/debug/$basearch/
+enabled=0
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux

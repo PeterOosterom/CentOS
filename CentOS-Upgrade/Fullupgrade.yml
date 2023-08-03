@@ -1,0 +1,433 @@
+---
+  - name: Centos pre-upgrade
+    hosts: test
+    become: yes
+    become_user: root
+    tasks:
+    
+      - name: ensure git 
+        yum:
+          name: git
+          state: latest
+          
+      - name: Check if base repo exists
+        stat:
+          path: "/etc/yum.repos.d/CentOS-Base.repo"
+        register: repo
+
+      - name: Copy centos base repo from Github
+        git:
+          repo: https://github.com/DigistateBV/centos7-repo.git
+          dest: /root/repo
+          clone: yes
+          update: yes
+        when: not repo.stat.exists
+
+      - name: Ensure base repo
+        command: cp /root/repo/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo
+        args:
+          warn: false
+        when: not repo.stat.exists
+#Update apache en centos zodat alle servers dezelfde versie hebben
+
+      - name: ensure apache is at the latest version
+        yum:
+          name: httpd
+          state: latest
+
+      - name: ensure apache is running
+        service:
+          name: httpd
+          state: started
+
+      - name: Install system updates for centos systems
+        yum:
+          name: '*'
+          state: latest
+          update_cache: yes
+         #cache_valid_time: 3600
+
+
+#reboot zodat eventuele nieuwe kernels gebruikt worden
+
+      - name: Reboot host and wait for it to restart
+        reboot:
+          msg: "Reboot initiated by Ansible"
+          connect_timeout: 5
+          reboot_timeout: 600
+          pre_reboot_delay: 0
+          post_reboot_delay: 30
+          test_command: whoami
+          
+      - name: clean yum
+        command: /bin/yum clean all 
+        args:
+          warn: false
+
+      - name: Install DNF
+        yum:
+          name: dnf
+          state: present
+
+
+#installeer de benodigdeheden voor Elevate
+      - name: ensure ELevate
+        yum:
+          name: "http://repo.almalinux.org/elevate/elevate-release-latest-el7.noarch.rpm"
+          state: present
+
+      - name: ensure leapp-upgrade
+        yum:
+          name: leapp-upgrade
+          state: present
+
+      - name: ensure leapp-data-centos
+        yum:
+          name: leapp-data-centos
+          state: present
+           
+      - name: ensure yum-utils
+        yum:
+          name: yum-utils
+          state: present
+
+
+      - name: Remove old kernels
+        command: package-cleanup -y --oldkernels --count=1
+
+        
+      - name: create leapp directory
+        file:
+          path: /var/log/leapp/
+          state: directory
+
+        
+      - name: create leapp answerfile
+        copy:
+          dest: /var/log/leapp/answerfile
+          content: |
+            [remove_pam_pkcs11_module_check]
+            confirm = True
+
+        
+      - name: Cleanup previous preupgrade reports
+        file:
+          path: '{{ item }}'
+          state: absent
+        loop:
+          - /var/log/leapp/leapp-report.txt
+          - /var/log/leapp/leapp-report.json
+
+        
+      - name: Generate leapp preupgrade report
+        command: leapp preupgrade
+        args:
+          creates: /var/log/leapp/leapp-report.txt
+        ignore_errors: yes
+        register: leapp_preupgrade
+
+        
+      - name: Debug leapp preupgrade output
+        debug:
+          var: leapp_preupgrade
+          verbosity: 2
+
+        
+      - name: Upgrade
+        command: leapp upgrade
+
+        
+      - name: Reboot host and wait for it to restart
+        reboot:
+          msg: "Reboot initiated by Ansible"
+          connect_timeout: 5
+          reboot_timeout: 600
+          pre_reboot_delay: 0
+          post_reboot_delay: 30
+          test_command: whoami
+
+ 
+  - name: Centos post-upgrade
+    hosts: test
+    become: yes
+    become_user: root
+    vars:
+      ansible_python_interpreter: /usr/bin/python3
+    tasks:
+
+      - name: Remove Leapp deps
+        command: dnf remove -y yum-plugin-fastestmirror leapp elevate python2-leapp elevate-release leapp-data-centos btrfs-progs leapp-repository-deps-el8 --disableexcludes=all
+        args:
+          warn: false
+          
+      - name: create python symlink
+        command: ln -fs /usr/bin/python2 /usr/bin/python
+        args:
+          warn: false
+          
+      - name: ensure postgres repo
+        command: dnf -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+        args:
+          warn: false
+
+      - name: ensure docker repo
+        command: dnf -y config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+        args:
+          warn: false
+
+      - name: disable default postgres repo
+        command: dnf module -y disable postgresql
+        args:
+          warn: false
+
+          
+      - name: clean yum
+        command: /bin/yum clean all 
+        args:
+          warn: false
+
+      - name: ensure postgresql15-server
+        dnf:
+          name: postgresql15-server
+          state: present
+
+
+      - name: Check if PostgreSQL database is initialized.
+        stat:
+          path: "/var/lib/pgsql/15/data/pg_hba.conf"
+        register: postgres
+
+      - name: Ensure PostgreSQL database is initialized.
+        command: "/usr/pgsql-15/bin/postgresql-15-setup initdb"
+        when: not postgres.stat.exists
+
+      - name: ensure apache is at the latest version
+        dnf:
+          name: httpd
+          state: latest
+
+      - name: ensure docker-ce is at the latest version
+        dnf:
+          name: docker-ce
+          state: latest
+          
+      - name: ensure apache is running
+        systemd:
+          name: httpd
+          state: started
+          enabled: true
+          masked: no
+
+   
+      - name: Enable postgres service
+        systemd:
+          name: postgresql-15.service
+          enabled: true
+          masked: no
+          state: started
+          
+      - name: Install system updates for centos systems
+        dnf:
+          name: '*'
+          state: latest
+          update_cache: yes
+
+      - name: Reboot host and wait for it to restart
+        reboot:
+          msg: "Reboot initiated by Ansible"
+          connect_timeout: 5
+          reboot_timeout: 600
+          pre_reboot_delay: 0
+          post_reboot_delay: 30
+          test_command: whoami
+
+  - name: Fix version error postgres
+    hosts: test
+    become: yes
+    become_user: postgres
+    tasks:
+
+      - name: Fix version error postgres
+        command: psql -c "ALTER DATABASE postgres REFRESH COLLATION VERSION"
+        args:
+          warn: false
+
+  - name: Centos pre-upgrade
+    hosts: test
+    become: yes
+    become_user: root
+    vars:
+      ansible_python_interpreter: /usr/bin/python3
+    tasks:
+
+      
+      - name: update
+        command: dnf update -y --allowerasing
+        args:
+          warn: false
+          
+      - name: ensure Centos 9 repos
+        command: dnf install -y http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-stream-repos-9.0-18.el9.noarch.rpm http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-stream-release-9.0-18.el9.noarch.rpm http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-gpg-keys-9.0-18.el9.noarch.rpm
+        args:
+          warn: false
+
+      - name: remove old repos
+        command: rm -f /etc/yum.repos.d/docker-ce.repo /etc/yum.repos.d/pgdg-redhat-all.repo
+        args:
+          warn: false
+          
+      - name: remove broken packages
+        dnf:
+          name: make-devel-1:4.2.1-11.el8.x86_64
+          state: absent
+
+      - name: update
+        command: dnf -y --releasever=9-stream --allowerasing --setopt=deltarpm=false distro-sync
+        args:
+          warn: false
+
+      - name: Rebuild rpm DB
+        command: rpmdb --rebuilddb
+        args:
+          warn: false
+
+      - name: dnf clean packages
+        command: dnf clean packages
+        args:
+          warn: false
+
+      - name: Install system updates for centos systems
+        yum:
+          name: '*'
+          state: latest
+          update_cache: yes
+
+      - name: groupupdate
+        command: dnf -y groupupdate "Core" "Minimal Install"
+        args:
+          warn: false
+          
+      - name: Remove rescue kernel
+        command: rm -f /boot/vmlinuz-0-rescue-b2a198ecbfdd451cb905f76f825af01e /boot/initramfs-0-rescue-b2a198ecbfdd451cb905f76f825af01e.img /boot/loader/entries/b2a198ecbfdd451cb905f76f825af01e-0-rescue.conf
+        args:
+          warn: false
+
+      - name: replace rescue kernel
+        command: /usr/lib/kernel/install.d/51-dracut-rescue.install add $(uname -r) /boot /boot/vmlinuz-$(uname -r)
+        args:
+          warn: false
+
+      - name: Reboot host and wait for it to restart
+        reboot:
+          msg: "Reboot initiated by Ansible"
+          connect_timeout: 5
+          reboot_timeout: 600
+          pre_reboot_delay: 0
+          post_reboot_delay: 30
+          test_command: whoami
+
+      - name: Remove old kernels
+        command: dnf remove -y kernel-core-4.18.0-500.el8.x86_64
+        args:
+          warn: false
+
+      - name: dnf module reset 
+        ansible.builtin.file:
+          state: absent 
+          path: /etc/dnf/modules.d
+
+      - name: dnf module reset 
+        ansible.builtin.file:
+          state: directory 
+          path: /etc/dnf/modules.d
+          
+      - name: ensure wget
+        dnf:
+          name: wget
+          state: latest
+
+      - name: get packages 
+        command: wget https://dl.rockylinux.org/pub/rocky/9/AppStream/x86_64/os/Packages/m/man-pages-overrides-9.0.0.0-1.el9.noarch.rpm http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/libfido2-1.6.0-7.el9.x86_64.rpm http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/libcbor-0.7.0-5.el9.x86_64.rpm http://mirror.stream.centos.org/9-stream/AppStream/x86_64/os/Packages/javapackages-filesystem-6.0.0-3.el9.noarch.rpm https://kojihub.stream.centos.org/kojifiles/packages/xorg-x11-font-utils/7.5/53.el9/x86_64/xorg-x11-font-utils-7.5-53.el9.x86_64.rpm
+        args:
+          warn: false
+
+      - name: install packages
+        command: yum localinstall -y man-pages-overrides-9.0.0.0-1.el9.noarch.rpm libfido2-1.6.0-7.el9.x86_64.rpm libcbor-0.7.0-5.el9.x86_64.rpm javapackages-filesystem-6.0.0-3.el9.noarch.rpm xorg-x11-font-utils-7.5-53.el9.x86_64.rpm
+        args:
+          warn: false
+
+      - name: ensure postgres repo
+        command: dnf -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+        args:
+          warn: false
+
+      - name: ensure docker repo
+        command: dnf -y config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+        args:
+          warn: false
+
+      - name: disable default postgres repo
+        command: dnf module -y disable postgresql
+        args:
+          warn: false
+
+          
+      - name: clean yum
+        command: /bin/yum clean all 
+        args:
+          warn: false
+
+      - name: ensure postgresql15-server
+        dnf:
+          name: postgresql15-server
+          state: present
+
+
+      - name: Check if PostgreSQL database is initialized.
+        stat:
+          path: "/var/lib/pgsql/15/data/pg_hba.conf"
+        register: postgres
+
+      - name: Ensure PostgreSQL database is initialized.
+        command: "/usr/pgsql-15/bin/postgresql-15-setup initdb"
+        when: not postgres.stat.exists
+
+      - name: ensure apache is at the latest version
+        dnf:
+          name: httpd
+          state: latest
+
+      - name: ensure docker-ce is at the latest version
+        dnf:
+          name: docker-ce
+          state: latest
+          
+      - name: ensure apache is running
+        systemd:
+          name: httpd
+          state: started
+          enabled: true
+          masked: no
+   
+      - name: Enable postgres service
+        systemd:
+          name: postgresql-15.service
+          enabled: true
+          masked: no
+          state: started
+          
+      - name: upgrade 
+        command: dnf upgrade -y --allowerasing
+        args:
+          warn: false
+
+  - name: Fix version error postgres
+    hosts: test
+    become: yes
+    become_user: postgres
+    tasks:
+
+      - name: Fix version error postgres
+        command: psql -c "ALTER DATABASE postgres REFRESH COLLATION VERSION"
+        args:
+          warn: false

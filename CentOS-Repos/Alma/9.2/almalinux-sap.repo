@@ -1,0 +1,30 @@
+[sap]
+name=AlmaLinux $releasever - SAP
+mirrorlist=https://mirrors.almalinux.org/mirrorlist/$releasever/sap
+# baseurl=https://repo.almalinux.org/almalinux/$releasever/SAP/$basearch/os/
+enabled=0
+gpgcheck=1
+countme=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
+metadata_expire=86400
+enabled_metadata=0
+
+[sap-debuginfo]
+name=AlmaLinux $releasever - SAP - Debug
+mirrorlist=https://mirrors.almalinux.org/mirrorlist/$releasever/sap-debug
+# baseurl=https://repo.almalinux.org/vault/$releasever/SAP/debug/$basearch/
+enabled=0
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
+metadata_expire=86400
+enabled_metadata=0
+
+[sap-source]
+name=AlmaLinux $releasever - SAP - Source
+mirrorlist=https://mirrors.almalinux.org/mirrorlist/$releasever/sap-source
+# baseurl=https://repo.almalinux.org/vault/$releasever/SAP/Source/
+enabled=0
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
+metadata_expire=86400
+enabled_metadata=0

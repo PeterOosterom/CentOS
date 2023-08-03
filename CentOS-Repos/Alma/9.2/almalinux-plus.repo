@@ -1,0 +1,30 @@
+[plus]
+name=AlmaLinux $releasever - Plus
+mirrorlist=https://mirrors.almalinux.org/mirrorlist/$releasever/plus
+# baseurl=https://repo.almalinux.org/almalinux/$releasever/plus/$basearch/os/
+enabled=0
+gpgcheck=1
+countme=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
+metadata_expire=86400
+enabled_metadata=0
+
+[plus-debuginfo]
+name=AlmaLinux $releasever - Plus - Debug
+mirrorlist=https://mirrors.almalinux.org/mirrorlist/$releasever/plus-debug
+# baseurl=https://repo.almalinux.org/vault/$releasever/plus/debug/$basearch/
+enabled=0
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
+metadata_expire=86400
+enabled_metadata=0
+
+[plus-source]
+name=AlmaLinux $releasever - Plus - Source
+mirrorlist=https://mirrors.almalinux.org/mirrorlist/$releasever/plus-source
+# baseurl=https://repo.almalinux.org/vault/$releasever/plus/Source/
+enabled=0
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
+metadata_expire=86400
+enabled_metadata=0

@@ -1,0 +1,30 @@
+[saphana]
+name=AlmaLinux $releasever - SAPHANA
+mirrorlist=https://mirrors.almalinux.org/mirrorlist/$releasever/saphana
+# baseurl=https://repo.almalinux.org/almalinux/$releasever/SAPHANA/$basearch/os/
+enabled=0
+gpgcheck=1
+countme=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
+metadata_expire=86400
+enabled_metadata=0
+
+[saphana-debuginfo]
+name=AlmaLinux $releasever - SAPHANA - Debug
+mirrorlist=https://mirrors.almalinux.org/mirrorlist/$releasever/saphana-debug
+# baseurl=https://repo.almalinux.org/vault/$releasever/SAPHANA/debug/$basearch/
+enabled=0
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
+metadata_expire=86400
+enabled_metadata=0
+
+[saphana-source]
+name=AlmaLinux $releasever - SAPHANA - Source
+mirrorlist=https://mirrors.almalinux.org/mirrorlist/$releasever/saphana-source
+# baseurl=https://repo.almalinux.org/vault/$releasever/SAPHANA/Source/
+enabled=0
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-9
+metadata_expire=86400
+enabled_metadata=0
