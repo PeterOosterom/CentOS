@@ -1,6 +1,6 @@
 ---
 - name: Update CentOS and Ubuntu systems
-  hosts: test2
+  hosts: test
   become: yes  # This allows Ansible to use sudo or become user
 
   tasks:
