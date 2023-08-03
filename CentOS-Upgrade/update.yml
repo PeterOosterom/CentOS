@@ -1,6 +1,6 @@
 ---
 - name: Update CentOS and Ubuntu systems
-  hosts: test
+  hosts: test2
   become: yes  # This allows Ansible to use sudo or become user
 
   tasks:
@@ -18,13 +18,25 @@
         upgrade: dist
       register: ubuntu_update_result
 
+    - name: Update Debian packages
+      when: "'Debian' in ansible_distribution"
+      apt:
+        update_cache: yes
+        upgrade: dist
+      register: debian_update_result
+
     - name: Save logs to a file
       copy:
         content: |
+   
           CentOS Update Log:
           {{ centos_update_result | to_nice_json }}
 
           Ubuntu Update Log:
           {{ ubuntu_update_result | to_nice_json }}
+
+          Debian Update Log:
+          {{ debian_update_result | to_nice_json }}
+
         dest: /var/logs/update_logs.txt
       delegate_to: localhost
