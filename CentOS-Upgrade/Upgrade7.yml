@@ -3,6 +3,8 @@
     hosts: test
     become: yes
     become_user: root
+    vars:
+      ansible_python_interpreter: /usr/bin/python3
     tasks:
     
       - name: ensure git 
@@ -123,7 +125,6 @@
         command: leapp preupgrade
         args:
           creates: /var/log/leapp/leapp-report.txt
-        ignore_errors: yes
         register: leapp_preupgrade
 
         
