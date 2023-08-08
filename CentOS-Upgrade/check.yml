@@ -1,4 +1,4 @@
-- hosts: test
+- hosts: 
   become: no
   vars:
     output_file: os.csv
@@ -27,3 +27,4 @@
           # Tries to prevent concurrent writes.
           throttle: 1
       delegate_to: localhost
+
