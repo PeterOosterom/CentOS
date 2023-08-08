@@ -148,6 +148,11 @@
         dnf:
           name: docker-ce
           state: latest
+
+      - name: ensure python3-psycopg2 is at the latest version
+        dnf:
+          name: python3-psycopg2
+          state: latest
           
       - name: ensure apache is running
         systemd:
