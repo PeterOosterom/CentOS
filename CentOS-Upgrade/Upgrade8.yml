@@ -173,6 +173,11 @@
         args:
           warn: false
 
+      - name: reset xinetd
+        systemd:
+          name: xinetd
+          state: restarted
+
   - name: Fix version error postgres
     hosts: test
     become: yes
