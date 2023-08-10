@@ -8,7 +8,7 @@
     tasks:
 
       
-      - name: update
+      - name: update packages
         command: dnf update -y --allowerasing
         args:
           warn: false
@@ -19,7 +19,7 @@
           warn: false
 
       - name: remove old repos
-        command: rm -f /etc/yum.repos.d/docker-ce.repo /etc/yum.repos.d/pgdg-redhat-all.repo
+        command: rm -f /etc/yum.repos.d/docker-ce-stable.repo /etc/yum.repos.d/pgdg-redhat-all.repo
         args:
           warn: false
           
@@ -27,6 +27,11 @@
         dnf:
           name: make-devel-1:4.2.1-11.el8.x86_64
           state: absent
+
+      - name: clean yum
+        command: /bin/yum clean all 
+        args:
+          warn: false
 
       - name: update
         command: dnf -y --releasever=9-stream --allowerasing --setopt=deltarpm=false distro-sync
