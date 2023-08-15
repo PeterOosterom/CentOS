@@ -1,2 +1,6 @@
 to do:
 check for different vrsions
+RCS en authd moeten erin
+logrotate.timer fixen
+die netwerkmeuk backuppen en terugzetten
+Firewalld verwijderen en iptables enablen
