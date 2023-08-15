@@ -99,12 +99,12 @@
           state: latest
 
       - name: get packages 
-        command: wget https://dl.rockylinux.org/pub/rocky/9/AppStream/x86_64/os/Packages/m/man-pages-overrides-9.0.0.0-1.el9.noarch.rpm http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/libfido2-1.6.0-7.el9.x86_64.rpm http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/libcbor-0.7.0-5.el9.x86_64.rpm http://mirror.stream.centos.org/9-stream/AppStream/x86_64/os/Packages/javapackages-filesystem-6.0.0-3.el9.noarch.rpm https://kojihub.stream.centos.org/kojifiles/packages/xorg-x11-font-utils/7.5/53.el9/x86_64/xorg-x11-font-utils-7.5-53.el9.x86_64.rpm
+        command: wget https://dl.rockylinux.org/pub/rocky/9/AppStream/x86_64/os/Packages/m/man-pages-overrides-9.0.0.0-1.el9.noarch.rpm http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/libfido2-1.6.0-7.el9.x86_64.rpm http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/libcbor-0.7.0-5.el9.x86_64.rpm http://mirror.stream.centos.org/9-stream/AppStream/x86_64/os/Packages/javapackages-filesystem-6.0.0-3.el9.noarch.rpm https://kojihub.stream.centos.org/kojifiles/packages/xorg-x11-font-utils/7.5/53.el9/x86_64/xorg-x11-font-utils-7.5-53.el9.x86_64.rpm http://rpmfind.net/linux/epel/9/Everything/x86_64/Packages/r/rcs-5.10.1-3.el9.x86_64.rpm http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/Packages/authd-1.4.4-5.el8_0.1.x86_64.rpm  
         args:
           warn: false
 
       - name: install packages
-        command: yum localinstall -y man-pages-overrides-9.0.0.0-1.el9.noarch.rpm libfido2-1.6.0-7.el9.x86_64.rpm libcbor-0.7.0-5.el9.x86_64.rpm javapackages-filesystem-6.0.0-3.el9.noarch.rpm xorg-x11-font-utils-7.5-53.el9.x86_64.rpm
+        command: yum localinstall -y man-pages-overrides-9.0.0.0-1.el9.noarch.rpm libfido2-1.6.0-7.el9.x86_64.rpm libcbor-0.7.0-5.el9.x86_64.rpm javapackages-filesystem-6.0.0-3.el9.noarch.rpm xorg-x11-font-utils-7.5-53.el9.x86_64.rpm authd-1.4.4-5.el8_0.1.x86_64.rpm rcs-5.10.1-3.el9.x86_64.rpm
         args:
           warn: false
 
@@ -182,6 +182,33 @@
         systemd:
           name: xinetd
           state: restarted
+
+      - name: ensure iptables is running
+        systemd:
+          name: iptables
+          state: started
+          enabled: true
+          masked: no
+
+      - name: remove firewalld
+        dnf:
+          name: postgresql15-server
+          state: present
+
+      - name: ensure logrotate.timer is running
+        systemd:
+          name: logrotate.timer
+          state: started
+          enabled: true
+          masked: no
+
+
+      - name: ensure logrotate is running
+        systemd:
+          name: logrotate
+          state: started
+          enabled: true
+          masked: no
 
   - name: Fix version error postgres
     hosts: test
