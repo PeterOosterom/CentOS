@@ -121,7 +121,6 @@
         command: dnf module -y disable postgresql
         args:
           warn: false
-
           
       - name: clean yum
         command: /bin/yum clean all 
@@ -132,7 +131,6 @@
         dnf:
           name: postgresql15-server
           state: present
-
 
       - name: Check if PostgreSQL database is initialized.
         stat:
@@ -200,7 +198,6 @@
           state: started
           enabled: true
           masked: no
-
 
       - name: ensure logrotate is running
         systemd:
