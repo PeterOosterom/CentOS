@@ -7,7 +7,6 @@
       ansible_python_interpreter: /usr/bin/python3
     tasks:
 
-      
       - name: update packages
         command: dnf update -y --allowerasing
         args:
@@ -192,8 +191,8 @@
 
       - name: remove firewalld
         dnf:
-          name: postgresql15-server
-          state: present
+          name: firewalld
+          state: absent
 
       - name: ensure logrotate.timer is running
         systemd:
