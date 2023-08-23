@@ -22,7 +22,7 @@
         become: yes
         command: cp -r /etc/sysconfig/network-scripts/ /tmp/network-scripts-backup
 
-      - name: update packages
+      - name: dnf update packages
         command: dnf update -y --allowerasing
         args:
           warn: false
@@ -47,7 +47,7 @@
         args:
           warn: false
 
-      - name: update
+      - name: update/upgrade centos to 9
         command: dnf -y --releasever=9-stream --allowerasing --setopt=deltarpm=false distro-sync
         args:
           warn: false
@@ -82,7 +82,8 @@
         command: /usr/lib/kernel/install.d/51-dracut-rescue.install add $(uname -r) /boot /boot/vmlinuz-$(uname -r)
         args:
           warn: false
-      - name: Restore the backup
+
+      - name: Restore the network backup
         become: yes
         become_method: sudo
         command: rsync -a /tmp/network-scripts-backup/ /etc/sysconfig/network-scripts/
@@ -101,12 +102,12 @@
         args:
           warn: false
 
-      - name: dnf module reset 
+      - name: dnf modules reset 
         ansible.builtin.file:
           state: absent 
           path: /etc/dnf/modules.d
 
-      - name: dnf module reset 
+      - name: dnf modules reset 
         ansible.builtin.file:
           state: directory 
           path: /etc/dnf/modules.d
@@ -127,6 +128,11 @@
           warn: false
 
       - name: ensure postgres repo
+        command: dnf -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+        args:
+          warn: false
+
+      - name: fix postgres repo
         command: dnf -y reinstall https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
         args:
           warn: false
@@ -189,7 +195,7 @@
           masked: no
           state: started
           
-      - name: upgrade 
+      - name: dnf upgrade 
         command: dnf upgrade -y --allowerasing
         args:
           warn: false
