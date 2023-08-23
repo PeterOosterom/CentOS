@@ -33,7 +33,7 @@
           warn: false
 
       - name: remove old repos
-        command: rm -f /etc/yum.repos.d/* /etc/yum.repos.d/pgdg-redhat-all.repo
+        command: rm -f /etc/yum.repos.d/docker* /etc/yum.repos.d/pgdg-redhat-all.repo
         args:
           warn: false
           
