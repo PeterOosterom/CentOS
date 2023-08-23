@@ -18,6 +18,9 @@
           msg: "This playbook is intended to run on CentOS Stream 8 only."
         when: "'CentOS Stream release 8' not in centos_release.stdout"
 
+      - name: Create a backup of network scripts
+        become: yes
+        command: cp -r /etc/sysconfig/network-scripts/ /tmp/network-scripts-backup
 
       - name: update packages
         command: dnf update -y --allowerasing
@@ -79,6 +82,10 @@
         command: /usr/lib/kernel/install.d/51-dracut-rescue.install add $(uname -r) /boot /boot/vmlinuz-$(uname -r)
         args:
           warn: false
+      - name: Restore the backup
+        become: yes
+        become_method: sudo
+        command: rsync -a /tmp/network-scripts-backup/ /etc/sysconfig/network-scripts/
 
       - name: Reboot host and wait for it to restart
         reboot:
