@@ -33,7 +33,7 @@
           warn: false
 
       - name: remove old repos
-        command: rm -f /etc/yum.repos.d/docker* /etc/yum.repos.d/pgdg-redhat-all.repo
+        command: rm -f /etc/yum.repos.d/docker-ce.repo /etc/yum.repos.d/pgdg-redhat-all.repo
         args:
           warn: false
           
@@ -127,7 +127,7 @@
           warn: false
 
       - name: ensure postgres repo
-        command: dnf -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+        command: dnf -y reinstall https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
         args:
           warn: false
 
