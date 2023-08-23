@@ -248,12 +248,12 @@
         args:
           warn: false
 
-      - name: Refresh COLLATION VERSION for default template0 database
-        command: psql -c "ALTER DATABASE template0 REFRESH COLLATION VERSION"
-        args:
-          warn: false
+    - name: Refresh COLLATION VERSION for default template0 database
+      command: psql -c "ALTER DATABASE template0 REFRESH COLLATION VERSION"
+      args:
+        warn: false
 
-      - name: Refresh COLLATION VERSION for default template1 database
-        command: psql -c "ALTER DATABASE template1 REFRESH COLLATION VERSION"
-        args:
-          warn: false
+    - name: Refresh COLLATION VERSION for default template1 database
+      command: psql -c "ALTER DATABASE template1 REFRESH COLLATION VERSION"
+      args:
+        warn: false
