@@ -39,7 +39,12 @@
       - name: Create a backup of network scripts
         become: yes
         command: cp -r /etc/sysconfig/network-scripts/ /var/temp/backup/network-scripts-backup
-                  
+
+      - name: remove broken packages
+        dnf:
+          name: iptables 
+          state: absent
+                            
       - name: Remove centos 8 repos
         ansible.builtin.file:
           state: absent 
@@ -65,11 +70,6 @@
           name: make-devel-1:4.2.1-11.el8.x86_64 
           state: absent
 
-      - name: remove broken packages
-        dnf:
-          name: iptables 
-          state: absent
-          
       - name: clean yum
         command: /bin/yum clean all 
         args:
@@ -114,7 +114,7 @@
       - name: Restore the network backup
         become: yes
         become_method: sudo
-        command: rsync -a /tmp/network-scripts-backup/ /etc/sysconfig/network-scripts/
+        command: rsync -a /var/temp/backup/network-scripts-backup /etc/sysconfig/network-scripts/
 
       - name: Reboot host and wait for it to restart
         reboot:
