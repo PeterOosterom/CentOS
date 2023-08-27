@@ -17,6 +17,19 @@
         fail:
           msg: "This playbook is intended to run on CentOS 7 only."
         when: "'CentOS Linux release 7' not in centos_release.stdout"
+        
+      - name: Create temp directory
+        file:
+          path: /var/temp/
+          state: directory
+
+      - name: Create backup directory
+        file:
+          path: /var/temp/backup/
+          state: directory
+
+      - name: Backup current iptables rules
+        command: iptables-save > /var/temp/backup/iptables.rules
       
       - name: ensure git 
         yum:
@@ -253,7 +266,9 @@
           state: started
           enabled: true
           masked: no
-
+          
+      - name: restore iptables rules
+        command: iptables-restore < /var/temp/backup/iptables.rules
       - name: remove firewalld
         dnf:
           name: firewalld
