@@ -21,12 +21,7 @@
       - name: Create a backup of network scripts
         become: yes
         command: cp -r /etc/sysconfig/network-scripts/ /tmp/network-scripts-backup
-
-      - name: dnf update packages
-        command: dnf update -y --allowerasing
-        args:
-          warn: false
-          
+         
       - name: ensure Centos 9 repos
         command: dnf install -y http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-stream-repos-9.0-18.el9.noarch.rpm http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-stream-release-9.0-18.el9.noarch.rpm http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-gpg-keys-9.0-18.el9.noarch.rpm
         args:
