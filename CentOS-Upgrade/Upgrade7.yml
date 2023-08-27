@@ -243,7 +243,12 @@
           name: '*'
           state: latest
           update_cache: yes
-
+          
+      - name: Install system updates for centos systems
+        dnf:
+          name: kernel-3.10.0-1160.95.1.el7.x86_64
+          state: absent
+          
       - name: Reboot host and wait for it to restart
         reboot:
           msg: "Reboot initiated by Ansible"
