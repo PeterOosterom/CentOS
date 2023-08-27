@@ -229,7 +229,6 @@
           state: started
           enabled: true
           masked: no
-
    
       - name: Enable postgres service
         systemd:
@@ -237,7 +236,29 @@
           enabled: true
           masked: no
           state: started
-          
+
+      - name: ensure iptables is at the latest version
+        dnf:
+          name: iptables
+          state: latest
+
+      - name: ensure iptables-services is at the latest version
+        dnf:
+          name: iptables-services
+          state: latest
+        
+      - name: ensure iptables is running
+        systemd:
+          name: iptables
+          state: started
+          enabled: true
+          masked: no
+
+      - name: remove firewalld
+        dnf:
+          name: firewalld
+          state: absent
+
       - name: Install system updates for centos systems
         dnf:
           name: '*'
