@@ -29,7 +29,7 @@
           state: directory
 
       - name: Backup current iptables rules
-        command: iptables-save > /var/temp/backup/iptables.rules
+        shell: iptables-save > /var/temp/backup/iptables.rules
       
       - name: ensure git 
         yum:
@@ -268,7 +268,8 @@
           masked: no
           
       - name: restore iptables rules
-        command: iptables-restore < /var/temp/backup/iptables.rules
+        shell: iptables-restore < /var/temp/backup/iptables.rules
+        
       - name: remove firewalld
         dnf:
           name: firewalld
