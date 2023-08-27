@@ -62,9 +62,14 @@
           
       - name: remove broken packages
         dnf:
-          name: make-devel-1:4.2.1-11.el8.x86_64 iptables
+          name: make-devel-1:4.2.1-11.el8.x86_64 
           state: absent
 
+      - name: remove broken packages
+        dnf:
+          name: iptables 
+          state: absent
+          
       - name: clean yum
         command: /bin/yum clean all 
         args:
