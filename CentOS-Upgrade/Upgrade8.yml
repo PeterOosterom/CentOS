@@ -27,7 +27,12 @@
         file:
           path: /var/temp/backup/
           state: directory
-
+          
+      - name: ensure iptables-services is installed
+        dnf:
+          name: iptables-services
+          state: latest
+          
       - name: Backup current iptables rules
         command: iptables-save > /var/temp/backup/iptables.rules
       
