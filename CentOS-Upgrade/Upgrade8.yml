@@ -244,10 +244,16 @@
         set_fact:
           db_name: "{{ hostname_result.stdout | lower | regex_replace('\\..*', '') }}"
 
+      - name: Check if the database exists
+        shell: psql -lqt | cut -d \| -f 1 | grep -qw "{{ db_name }}"
+        register: db_exists
+        ignore_errors: yes
+
       - name: Refresh COLLATION VERSION for main database
         command: psql -d {{ db_name }} -c "SELECT pg_reload_conf();"
         args:
           warn: false
+        when: db_exists.rc == 0
 
       - name: Refresh COLLATION VERSION for default postgres database
         command: psql -c "ALTER DATABASE postgres REFRESH COLLATION VERSION"
