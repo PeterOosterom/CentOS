@@ -17,10 +17,23 @@
         fail:
           msg: "This playbook is intended to run on CentOS Stream 8 only."
         when: "'CentOS Stream release 8' not in centos_release.stdout"
+        
+      - name: Create temp directory
+        file:
+          path: /var/temp/
+          state: directory
 
+      - name: Create backup directory
+        file:
+          path: /var/temp/backup/
+          state: directory
+
+      - name: Backup current iptables rules
+        command: iptables-save > /var/temp/backup/iptables.rules
+      
       - name: Create a backup of network scripts
         become: yes
-        command: cp -r /etc/sysconfig/network-scripts/ /tmp/network-scripts-backup
+        command: cp -r /etc/sysconfig/network-scripts/ /var/temp/backup/network-scripts-backup
                   
       - name: Remove centos 8 repos
         ansible.builtin.file:
@@ -44,7 +57,7 @@
           
       - name: remove broken packages
         dnf:
-          name: make-devel-1:4.2.1-11.el8.x86_64
+          name: make-devel-1:4.2.1-11.el8.x86_64 iptables
           state: absent
 
       - name: clean yum
@@ -226,7 +239,10 @@
           state: started
           enabled: true
           masked: no
-
+          
+      - name: Restore iptables rules
+        command: iptables-restore < /var/temp/backup/iptables.rules
+        
       - name: remove firewalld
         dnf:
           name: firewalld
