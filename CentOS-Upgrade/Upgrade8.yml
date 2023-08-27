@@ -34,7 +34,7 @@
           state: latest
           
       - name: Backup current iptables rules
-        command: iptables-save > /var/temp/backup/iptables.rules
+        shell: iptables-save > /var/temp/backup/iptables.rules
       
       - name: Create a backup of network scripts
         become: yes
@@ -246,7 +246,7 @@
           masked: no
           
       - name: Restore iptables rules
-        command: iptables-restore < /var/temp/backup/iptables.rules
+        shell: iptables-restore < /var/temp/backup/iptables.rules
         
       - name: remove firewalld
         dnf:
