@@ -13,7 +13,7 @@
         changed_when: false
         failed_when: false
 
-      - name: Ensure playbook runs only on CentOS 7
+      - name: Ensure playbook only runs on CentOS 7
         fail:
           msg: "This playbook is intended to run on CentOS 7 only."
         when: "'CentOS Linux release 7' not in centos_release.stdout"
