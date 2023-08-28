@@ -18,6 +18,17 @@
           msg: "This playbook is intended to run on CentOS Stream 8 only."
         when: "'CentOS Stream release 8' not in centos_release.stdout"
         
+      - name: Gather package facts
+        package_facts:
+          manager: auto
+        register: package_facts
+
+      - name: Check if PostgreSQL 15 is installed
+        assert:
+          that:
+            - "'postgresql15-server' in package_facts.ansible_facts.packages"
+          fail_msg: "This playbook is intended to run on machines with PostgreSQL 15 installed."
+
       - name: Create temp directory
         file:
           path: /var/temp/
