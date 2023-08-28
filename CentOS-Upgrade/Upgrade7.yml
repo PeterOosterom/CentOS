@@ -300,10 +300,17 @@
           state: latest
           update_cache: yes
           
-      - name: Install system updates for centos systems
-        dnf:
-          name: kernel-3.10.0-1160.95.1.el7.x86_64
+      - name: Get list of installed kernel-related packages
+        command: rpm -qa kernel\* kernel-devel\* kernel-modules\* kernel-modules-extra\* kernel-workaround\*
+        register: installed_kernel_related_packages
+        changed_when: false
+
+      - name: Remove CentOS 7 kernel-related packages
+        yum:
+          name: "{{ item }}"
           state: absent
+        loop: "{{ installed_kernel_related_packages.stdout_lines }}"
+        when: "'el7' in item"
           
       - name: Reboot host and wait for it to restart
         reboot:
