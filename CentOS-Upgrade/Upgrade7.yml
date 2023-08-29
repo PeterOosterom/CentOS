@@ -50,15 +50,15 @@
 
       - name: Backup current iptables rules
         shell: iptables-save > /var/temp/backup/iptables.rules
-      
-      - name: ensure git 
-        yum:
-          name: git
-          state: latest
 
       - name: Create a backup of network scripts
         become: yes
         command: cp -r /etc/sysconfig/network-scripts/ /var/temp/backup/network-scripts-backup
+        
+      - name: ensure git 
+        yum:
+          name: git
+          state: latest
 
       - name: Check if base repo exists
         stat:
