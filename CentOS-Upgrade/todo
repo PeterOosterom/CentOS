@@ -1,2 +1,5 @@
 to do:
 Main script die autmatisch de juiste scripts aanroept.
+iptables op een andere manier backuppen
+networkscripts backup moet anders
+hogere reboot timeouut
