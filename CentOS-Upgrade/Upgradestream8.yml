@@ -258,6 +258,11 @@
           name: iptables
           state: latest
 
+      - name: ensure vi is at the latest version
+        dnf:
+          name: vim
+          state: latest
+
       - name: ensure iptables-services is at the latest version
         dnf:
           name: iptables-services
