@@ -287,7 +287,13 @@
         dnf:
           name: iptables-services
           state: latest
-        
+
+
+      - name: ensure vim is at the latest version
+        dnf:
+          name: vim
+          state: latest
+          
       - name: ensure iptables is running
         systemd:
           name: iptables
