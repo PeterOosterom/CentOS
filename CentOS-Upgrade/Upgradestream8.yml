@@ -205,6 +205,11 @@
           name: postgresql15-server
           state: present
 
+      - name: ensure postgresql15-contrib
+        dnf:
+          name: postgresql15-contrib
+          state: present
+
       - name: Check if PostgreSQL database is initialized.
         stat:
           path: "/var/lib/pgsql/15/data/pg_hba.conf"
