@@ -187,13 +187,9 @@
         command: leapp upgrade
 
       - name: Restore the backup
-        become: yes
-        become_method: sudo
-        synchronize:
-          src: /tmp/network-scripts-backup/
-          dest: /etc/sysconfig/network-scripts/
-          delete: yes
-        when: ansible_play_batch.index == ansible_play_batch.size - 1
+        command: mv /tmp/network-scripts-backup/ /etc/sysconfig/network-scripts/
+        args:
+          warn: false
         
       - name: Reboot host and wait for it to restart
         reboot:
