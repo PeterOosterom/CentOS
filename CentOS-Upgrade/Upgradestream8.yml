@@ -58,7 +58,7 @@
       
       - name: Create a backup of network scripts
         become: yes
-        command: cp -r /etc/sysconfig/network-scripts/ /var/temp/backup/network-scripts-backup
+        command: cp /etc/sysconfig/network-scripts/ /var/temp/backup/network-scripts-backup
 
       - name: remove broken packages
         dnf:
@@ -131,10 +131,15 @@
         args:
           warn: false
 
-      - name: Restore the network backup
-        become: yes
-        become_method: sudo
-        command: rsync -a /var/temp/backup/network-scripts-backup /etc/sysconfig/network-scripts/
+      - name: Restore the backup pt.1
+        ansible.builtin.file:
+          state: absent 
+          path: etc/sysconfig/network-scripts/
+          
+      - name: Restore the backup pt.2
+        command: mv /tmp/network-scripts-backup/ /etc/sysconfig/network-scripts/
+        args:
+          warn: false
 
       - name: Reboot host and wait for it to restart
         reboot:
