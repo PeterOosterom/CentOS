@@ -54,7 +54,7 @@
       - name: Create a backup of network scripts
         become: yes
         become_method: sudo
-        command: cp /etc/sysconfig/network-scripts/ /tmp/network-scripts-backup
+        command: cp -r /etc/sysconfig/network-scripts/ /tmp/network-scripts-backup
         
       - name: ensure git 
         yum:
