@@ -132,12 +132,12 @@
           warn: false
 
       - name: Restore the backup pt.1
-        ansible.builtin.file:
-          state: absent 
-          path: etc/sysconfig/network-scripts/
+        command: rm -rf /etc/sysconfig/network-scripts
+        args:
+          warn: false
           
       - name: Restore the backup pt.2
-        command: mv /var/temp/backup/network-scripts-backup/ /etc/sysconfig/network-scripts/
+        command: mv /var/temp/backup/network-scripts-backup /etc/sysconfig/network-scripts
         args:
           warn: false
 
