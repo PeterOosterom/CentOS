@@ -137,7 +137,7 @@
           path: etc/sysconfig/network-scripts/
           
       - name: Restore the backup pt.2
-        command: mv /var/temp/network-scripts-backup/ /etc/sysconfig/network-scripts/
+        command: mv /var/temp/backup/network-scripts-backup/ /etc/sysconfig/network-scripts/
         args:
           warn: false
 
