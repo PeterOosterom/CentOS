@@ -54,7 +54,7 @@
       - name: Create a backup of network scripts
         become: yes
         become_method: sudo
-        command: cp -r /etc/sysconfig/network-scripts/ /var/temp/backup/network-scripts-backup
+        command: cp -r /etc/sysconfig/network-scripts /var/temp/backup/network-scripts-backup
         
       - name: ensure git 
         yum:
@@ -187,12 +187,12 @@
         command: leapp upgrade
         
       - name: Restore the backup pt.1
-        ansible.builtin.file:
-          state: absent 
-          path: etc/sysconfig/network-scripts/
+        command: rm -rf /etc/sysconfig/network-scripts
+        args:
+          warn: false
           
       - name: Restore the backup pt.2
-        command: mv /var/temp/backup/network-scripts-backup/ /etc/sysconfig/network-scripts/
+        command: mv /var/temp/backup/network-scripts-backup /etc/sysconfig/network-scripts
         args:
           warn: false
         
