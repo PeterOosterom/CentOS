@@ -50,11 +50,11 @@
 
       - name: Backup current iptables rules
         shell: iptables-save > /var/temp/backup/iptables.rules
+        
       - name: Create a backup of network scripts
         become: yes
         become_method: sudo
-        command: cp -r /etc/sysconfig/network-scripts/ /tmp/network-scripts-backup
-        changed_when: false
+        command: cp /etc/sysconfig/network-scripts/ /tmp/network-scripts-backup
         
       - name: ensure git 
         yum:
@@ -185,8 +185,13 @@
         
       - name: Upgrade
         command: leapp upgrade
-
-      - name: Restore the backup
+        
+      - name: Restore the backup pt.1
+        ansible.builtin.file:
+          state: absent 
+          path: etc/sysconfig/network-scripts/
+          
+      - name: Restore the backup pt.2
         command: mv /tmp/network-scripts-backup/ /etc/sysconfig/network-scripts/
         args:
           warn: false
