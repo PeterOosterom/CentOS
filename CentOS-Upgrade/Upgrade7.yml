@@ -214,11 +214,7 @@
       ansible_python_interpreter: /usr/bin/python3
     tasks:
 
-      - name: Remove Leapp deps
-        command: dnf remove -y yum-plugin-fastestmirror leapp elevate python2-leapp elevate-release leapp-data-centos btrfs-progs leapp-repository-deps-el8 --disableexcludes=all
-        args:
-          warn: false
-          
+         
       - name: create python symlink
         command: ln -fs /usr/bin/python2 /usr/bin/python
         args:
@@ -332,6 +328,11 @@
           state: absent
         loop: "{{ installed_kernel_related_packages.stdout_lines }}"
         when: "'el7' in item"
+
+      - name: Remove Leapp deps
+        command: dnf remove -y yum-plugin-fastestmirror leapp elevate python2-leapp elevate-release leapp-data-centos btrfs-progs leapp-repository-deps-el8 --disableexcludes=all
+        args:
+          warn: false
           
       - name: Reboot host and wait for it to restart
         reboot:
