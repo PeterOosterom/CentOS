@@ -137,7 +137,7 @@
           warn: false
           
       - name: Restore the backup pt.2
-        command: cp /var/temp/backup/network-scripts-backup /etc/sysconfig/network-scripts
+        command: cp -r /var/temp/backup/network-scripts-backup /etc/sysconfig/network-scripts
         args:
           warn: false
 
