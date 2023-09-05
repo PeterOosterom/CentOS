@@ -286,7 +286,7 @@
           masked: no
           
       - name: Restore iptables rules
-        shell: iptables-restore < /var/temp/backup/iptables.rules
+        shell: sudo cp /var/temp/backup/iptables.rules /etc/sysconfig/iptables
         
       - name: remove firewalld
         dnf:
