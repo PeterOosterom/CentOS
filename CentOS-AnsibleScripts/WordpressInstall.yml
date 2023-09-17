@@ -1,0 +1,103 @@
+---
+  - name: Centos pre-upgrade
+    hosts: "{{ target_host }}"
+    become: yes
+    become_user: root
+    vars:
+      ansible_python_interpreter: /usr/bin/python2
+    vars_prompt:
+      - name: confirm_target
+        prompt: "Is '{{ target_host }}' the correct target host? (yes/no)"
+        private: no
+    tasks:
+
+      - name: Confirm target host
+        fail:
+          msg: "Aborted playbook execution. Confirm target host before proceeding."
+        when: confirm_target != "yes"
+    
+      - name: Check CentOS version
+        command: cat /etc/centos-release
+        register: centos_release
+        changed_when: false
+        failed_when: false
+        
+      - name: Ensure playbook runs only on CentOS Stream 9
+        fail:
+          msg: "This playbook is intended to run on CentOS Stream 9 only."
+        when: "'CentOS Stream release 9' not in centos_release.stdout"
+      - name: ensure httpd 
+        yum:
+          name: httpd
+          state: latest
+
+      - name: ensure apache is running
+        systemd:
+          name: httpd
+          state: started
+          enabled: true
+          masked: no
+
+      - name: ensure firewalld 
+        yum:
+          name: httpd
+          state: latest
+        
+      - name: ensure firewalld is running
+        systemd:
+          name: firewalld 
+          state: started
+          enabled: true
+          masked: no
+
+      - name: remove iptables
+        yum:
+          name: iptables
+          state: absent
+        
+      - name: Open port 80
+        command: sudo firewall-cmd --add-port=80/tcp --permanent
+        args:
+          warn: false
+        
+      - name: Open port 443
+        command: sudo firewall-cmd --add-port=443/tcp --permanent
+        args:
+          warn: false
+        
+      - name: Open port 22
+        command: sudo firewall-cmd --add-port=22/tcp --permanent
+        args:
+          warn: false
+
+      - name: ensure epel 
+        command: dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+        args:
+          warn: false
+
+      - name: enure remi
+        command: dnf -y install http://rpms.remirepo.net/enterprise/remi-release-9.rpm
+        args:
+          warn: false
+
+      - name: enure deps
+        command: yum -y install httpd mariadb mariadb-server php-gd php-soap php-intl php-mysqlnd php-pdo php-pecl-zip php-fpm php-opcache php-curl php-zip php-xmlrpc wget
+        args:
+          warn: false
+
+      - name: ensure mariadb is running
+        systemd:
+          name: mariadb 
+          state: started
+          enabled: true
+          masked: no
+
+      - name: ensure httpd 
+        yum:
+          name: httpd
+          state: latest
+        
+      - name: ensure httpd 
+        yum:
+          name: httpd
+          state: latest
