@@ -1,0 +1,54 @@
+---
+  - name: Centos pre-upgrade
+    hosts: "{{ target_host }}"
+    become: yes
+    become_user: root
+    vars:
+      ansible_python_interpreter: /usr/bin/python2
+    vars_prompt:
+      - name: confirm_target
+        prompt: "Is '{{ target_host }}' the correct target host? (yes/no)"
+        private: no
+    tasks:
+
+      - name: Confirm target host
+        fail:
+          msg: "Aborted playbook execution. Confirm target host before proceeding."
+        when: confirm_target != "yes"
+    
+      - name: Check CentOS version
+        command: cat /etc/centos-release
+        register: centos_release
+        changed_when: false
+        failed_when: false
+
+      - name: Ensure playbook only runs on CentOS 7
+        fail:
+          msg: "This playbook is intended to run on CentOS 7 only."
+        when: "'CentOS Linux release 7' not in centos_release.stdout"
+        
+      - name: Gather package facts
+        package_facts:
+          manager: auto
+        register: package_facts
+
+      - name: ensure postgres repo
+        command: yum install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+        args:
+          warn: false
+
+      - name: Install system updates for centos systems
+        yum:
+          name: '*'
+          state: latest
+          update_cache: yes
+
+      - name: ensure epel repo
+        command: yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        args:
+          warn: false
+
+      - name: ensure postgresql15-server
+        dnf:
+          name: postgresql15-server
+          state: present
