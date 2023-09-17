@@ -49,6 +49,6 @@
           warn: false
 
       - name: ensure postgresql15-server
-        dnf:
+        yum:
           name: postgresql15-server
           state: present
