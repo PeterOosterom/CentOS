@@ -59,11 +59,6 @@
       - name: Create a backup of network scripts
         become: yes
         command: cp -r /etc/sysconfig/network-scripts/ /var/temp/backup/network-scripts-backup
-
-      - name: remove broken packages
-        dnf:
-          name: iptables 
-          state: absent
                             
       - name: Remove centos 8 repos
         ansible.builtin.file:
@@ -77,11 +72,6 @@
                    
       - name: ensure Centos 9 repos
         command: dnf install -y http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-stream-repos-9.0-23.el9.noarch.rpm http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-stream-release-9.0-23.el9.noarch.rpm http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-gpg-keys-9.0-23.el9.noarch.rpm
-        args:
-          warn: false
-
-      - name: remove old repos
-        command: rm -f /etc/yum.repos.d/docker-ce.repo /etc/yum.repos.d/pgdg-redhat-all.repo
         args:
           warn: false
           
@@ -128,16 +118,6 @@
 
       - name: replace rescue kernel
         command: /usr/lib/kernel/install.d/51-dracut-rescue.install add $(uname -r) /boot /boot/vmlinuz-$(uname -r)
-        args:
-          warn: false
-
-      - name: Restore the backup pt.1
-        command: rm -rf /etc/sysconfig/network-scripts
-        args:
-          warn: false
-          
-      - name: Restore the backup pt.2
-        command: cp -r /var/temp/backup/network-scripts-backup /etc/sysconfig/network-scripts
         args:
           warn: false
 
