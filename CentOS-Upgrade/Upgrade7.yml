@@ -185,17 +185,7 @@
         
       - name: Upgrade
         command: leapp upgrade
-        
-      - name: Restore the backup pt.1
-        command: rm -rf /etc/sysconfig/network-scripts
-        args:
-          warn: false
-          
-      - name: Restore the backup pt.2
-        command: cp -r /var/temp/backup/network-scripts-backup /etc/sysconfig/network-scripts
-        args:
-          warn: false
-        
+  
       - name: Reboot host and wait for it to restart
         reboot:
           msg: "Reboot initiated by Ansible"
@@ -213,7 +203,6 @@
     vars:
       ansible_python_interpreter: /usr/bin/python3
     tasks:
-
          
       - name: create python symlink
         command: ln -fs /usr/bin/python2 /usr/bin/python
@@ -235,7 +224,6 @@
         args:
           warn: false
 
-          
       - name: clean yum
         command: /bin/yum clean all 
         args:
