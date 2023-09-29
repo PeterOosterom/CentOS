@@ -14,7 +14,9 @@
           msg: "Aborted playbook execution. Confirm target host before proceeding."
         when: confirm_target != "yes"
 
-      - name: ensure chrome
+      - name: Update Debian packages
+        when: "'Debian' in ansible_distribution"
         apt:
-          name: chrome-browser
-          state: latest
+          update_cache: yes
+          upgrade: dist
+        register: debian_update_result       

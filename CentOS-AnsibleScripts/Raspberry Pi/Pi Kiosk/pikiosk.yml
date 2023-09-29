@@ -1,0 +1,45 @@
+---
+  - name: Create raspberry pi kiosk
+    hosts: "{{ target_host }}"
+    become: yes
+    become_user: root
+    vars_prompt:
+      - name: confirm_target
+        prompt: "Is '{{ target_host }}' the correct target host? (yes/no)"
+        private: no
+    tasks:
+
+      - name: Confirm target host
+        fail:
+          msg: "Aborted playbook execution. Confirm target host before proceeding."
+        when: confirm_target != "yes"
+
+      - name: ensure chrome
+        apt:
+          name: chromium-browser
+          state: latest
+
+      - name: Create the autostart directory if it doesn't exist
+        file:
+          path: /etc/xdg/lxsession/LXDE-pi
+          state: directory
+          mode: '0755'
+        become: yes
+
+      - name: Create the autostart file
+        template:
+          src: templates/autostart.j2
+          dest: /etc/xdg/lxsession/LXDE-pi/autostart
+        become: yes     
+
+      - name: Update Chromium Preferences
+        become_user: pi
+        command: >
+          sed -i 's/"exited_cleanly":false/"exited_cleanly":true/'
+          /home/pi/.config/chromium/Default/Preferences
+
+      - name: Update Chromium Preferences (exit_type)
+        become_user: pi
+        command: >
+          sed -i 's/"exit_type":"Crashed"/"exit_type":"Normal"/'
+          /home/pi/.config/chromium/Default/Preferences       
