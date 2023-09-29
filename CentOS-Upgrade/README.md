@@ -1,6 +1,8 @@
 # CentosStreamupgrade
 
-Centos doesnt support in-place upgrades, so i made my own
+Centos doesnt support in-place upgrades, so i made my ownv
+
+ansible-playbook upgrade_playbook.yml --extra-vars "target_host=your_target_host"
 
 # Directadmin
 
