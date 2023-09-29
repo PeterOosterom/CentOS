@@ -1,0 +1,20 @@
+---
+  - name: Create raspberry pi kiosk
+    hosts: "{{ target_host }}"
+    become: yes
+    become_user: root
+    vars_prompt:
+      - name: confirm_target
+        prompt: "Is '{{ target_host }}' the correct target host? (yes/no)"
+        private: no
+    tasks:
+
+      - name: Confirm target host
+        fail:
+          msg: "Aborted playbook execution. Confirm target host before proceeding."
+        when: confirm_target != "yes"
+
+      - name: ensure chrome
+        apt:
+          name: chrome-browser
+          state: latest
