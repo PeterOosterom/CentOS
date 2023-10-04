@@ -1,0 +1,56 @@
+---
+- name: Check PostgreSQL Version on Selected Hosts
+  hosts: centostest,test
+  become: yes
+  gather_facts: yes
+
+  vars_prompt:
+    - name: csv_file_path
+      prompt: "Enter the path for the CSV file:"
+      private: no  # Set to yes if you want to hide input
+
+  tasks:
+    - name: Check PostgreSQL version
+      command: psql --version
+      register: postgresql_version
+      ignore_errors: yes  # Ignore errors if psql is not installed
+
+    - name: Extract PostgreSQL version
+      set_fact:
+        postgresql_version_str: "{{ postgresql_version.stdout | regex_replace('psql \\(PostgreSQL\\) (\\d+\\.\\d+\\.\\d+).*', '\\1') }}"
+      when: postgresql_version.rc == 0
+
+    - name: Debug PostgreSQL version
+      debug:
+        var: postgresql_version_str
+      when: postgresql_version.rc == 0
+
+    - name: Set host variable with PostgreSQL version
+      set_fact:
+        host_postgresql_version: "{{ postgresql_version_str }}"
+      when: postgresql_version.rc == 0
+
+    - name: Ensure CSV file directory exists
+      file:
+        path: "{{ csv_file_path | dirname }}"
+        state: directory
+      delegate_to: localhost
+
+    - name: Generate CSV content
+      delegate_to: localhost
+      set_fact:
+        csv_content: |
+          "Hostname","PostgreSQL Version"
+          "{{ inventory_hostname }}","{{ host_postgresql_version | default('N/A') }}"
+
+    - name: Create the CSV file if it doesn't exist
+      delegate_to: localhost
+      command: touch "{{ csv_file_path }}"
+      changed_when: false
+
+    - name: Append CSV content to file
+      delegate_to: localhost
+      lineinfile:
+        line: "{{ csv_content }}"
+        path: "{{ csv_file_path }}"
+        insertafter: EOF
