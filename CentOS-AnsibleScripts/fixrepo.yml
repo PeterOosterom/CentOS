@@ -1,0 +1,20 @@
+---
+- name: Check and install CentOS Stream 9 repositories
+  hosts: your_target_servers
+  become: yes  # This will use sudo to run commands as root
+
+  tasks:
+    - name: Check if the system is CentOS Stream 9
+      command: cat /etc/redhat-release
+      register: centos_release
+      changed_when: false
+      failed_when: false
+
+    - name: Install CentOS Stream 9 base repository
+      yum_repository:
+        name: CentOS-Stream-Base
+        description: CentOS Stream 9 Base Repository
+        baseurl: https://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/
+        gpgcheck: yes
+        enabled: yes
+      when: centos_release.stdout.find("CentOS Stream release 9") != -1
