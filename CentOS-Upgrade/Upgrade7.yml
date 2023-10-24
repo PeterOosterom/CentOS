@@ -77,13 +77,13 @@
           dest: /root/repo
           clone: yes
           update: yes
-        when: not repo.stat.exists
+
 
       - name: Ensure base repo
         command: cp /root/repo/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo
         args:
           warn: false
-        when: not repo.stat.exists
+
 #Update apache en centos zodat alle servers dezelfde versie hebben
 
       - name: ensure apache is at the latest version
