@@ -1,0 +1,48 @@
+---
+- name: Gather Host Information and Create CSV
+  hosts: localhost
+  gather_facts: no
+
+  tasks:
+    - name: Create the CSV file if it doesn't exist
+      command: touch "/home/poosterom/test20.csv"
+      changed_when: false
+
+    - name: Generate CSV header
+      set_fact:
+        csv_header: "Hostname,CentOS Version,JQ Installed"
+      delegate_to: localhost
+
+    - name: Write the header to the CSV file
+      lineinfile:
+        line: "{{ csv_header }}"
+        path: "/home/poosterom/test20.csv"
+        insertbefore: 1
+
+- name: Gather Host Information and Create CSV Rows
+  hosts: hosts
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Gather CentOS Version
+      command: cat /etc/centos-release
+      register: centos_version
+      ignore_errors: yes
+
+    - name: Check if JQ is installed
+      command: jq --version
+      ignore_errors: yes
+      register: jq_check
+
+    - name: Generate CSV content
+      delegate_to: localhost
+      set_fact:
+        csv_content: "{{ inventory_hostname }},{{ centos_version.stdout | default('N/A') | regex_replace('\n', ' ') }},{{ 'Yes' if not jq_check.failed else 'No' }}"
+      changed_when: false
+
+    - name: Append CSV content to file
+      delegate_to: localhost
+      lineinfile:
+        line: "{{ csv_content }}"
+        path: "/home/poosterom/test20.csv"
