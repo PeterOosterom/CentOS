@@ -2,7 +2,6 @@
 - name: Disable Consistent Network Device Naming (CNDN)
   hosts: "{{ target_host }}"
   become: yes  # Ensure you have necessary privileges
-
   tasks:
     - name: Remove 80-net-setup-link.rules
       file:
@@ -32,17 +31,8 @@
     become_user: root
     vars:
       ansible_python_interpreter: /usr/bin/python3
-    vars_prompt:
-      - name: confirm_target
-        prompt: "Is '{{ target_host }}' the correct target host? (yes/no)"
-        private: no
     tasks:
 
-      - name: Confirm target host
-        fail:
-          msg: "Aborted playbook execution. Confirm target host before proceeding."
-        when: confirm_target != "yes"
-        
       - name: Check CentOS version
         command: cat /etc/centos-release
         register: centos_release
