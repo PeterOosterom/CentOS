@@ -1,6 +1,6 @@
 ---
 - name: Check PostgreSQL Version on Selected Hosts
-  hosts: centostest,test
+  hosts: 
   become: yes
   gather_facts: yes
 
