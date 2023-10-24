@@ -1,4 +1,31 @@
 ---
+- name: Disable Consistent Network Device Naming (CNDN)
+  hosts: "{{ target_host }}"
+  become: yes  # Ensure you have necessary privileges
+
+  tasks:
+    - name: Remove 80-net-setup-link.rules
+      file:
+        path: /etc/udev/rules.d/80-net-setup-link.rules
+        state: absent
+      notify: Reload udev
+
+    - name: Configure Grub to Disable CNDN
+      lineinfile:
+        path: /etc/default/grub
+        regexp: '^GRUB_CMDLINE_LINUX='
+        line: 'GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"'
+      notify: Update Grub
+
+  handlers:
+    - name: Reload udev
+      systemd:
+        name: systemd-udevd
+        state: restarted
+
+    - name: Update Grub
+      command: grub2-mkconfig -o /boot/grub2/grub.cfg
+      
   - name: Centos pre-upgrade
     hosts: "{{ target_host }}"
     become: yes
@@ -55,12 +82,6 @@
           
       - name: Backup current iptables rules
         shell: iptables-save > /var/temp/backup/iptables.rules
-      
-      - name: Create a backup of network scripts
-        become: yes
-        command: cp -r /etc/sysconfig/network-scripts/ /var/temp/backup/network-scripts-backup
-
-
 
       - name: remove broken packages
         dnf:
@@ -77,11 +98,6 @@
         ansible.builtin.file:
           state: directory 
           path: /etc/yum.repos.d/
-                   
-      - name: ensure Centos 9 repos
-        command: dnf install -y http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-stream-repos-9.0-23.el9.noarch.rpm http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-stream-release-9.0-23.el9.noarch.rpm http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-gpg-keys-9.0-23.el9.noarch.rpm
-        args:
-          warn: false
           
       - name: remove broken packages
         dnf:
@@ -138,11 +154,6 @@
           post_reboot_delay: 30
           test_command: whoami
 
-      - name: Remove old kernels
-        command: dnf remove -y kernel-core-4.18.0-500.el8.x86_64
-        args:
-          warn: false
-
       - name: dnf modules reset 
         ansible.builtin.file:
           state: absent 
@@ -165,21 +176,6 @@
 
       - name: install packages
         command: yum localinstall -y man-pages-overrides-9.0.0.0-1.el9.noarch.rpm libfido2-1.6.0-7.el9.x86_64.rpm libcbor-0.7.0-5.el9.x86_64.rpm javapackages-filesystem-6.0.0-3.el9.noarch.rpm xorg-x11-font-utils-7.5-53.el9.x86_64.rpm authd-1.4.4-5.el8_0.1.x86_64.rpm rcs-5.10.1-3.el9.x86_64.rpm xinetd-2.3.15-24.el8.x86_64.rpm
-        args:
-          warn: false
-
-      - name: ensure postgres repo
-        command: dnf -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
-        args:
-          warn: false
-
-      - name: fix postgres repo
-        command: dnf -y reinstall https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
-        args:
-          warn: false
-
-      - name: ensure docker repo
-        command: dnf -y config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
         args:
           warn: false
 
