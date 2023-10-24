@@ -2,6 +2,8 @@
 - name: Disable Consistent Network Device Naming (CNDN)
   hosts: your_target_servers
   become: yes  # Ensure you have necessary privileges
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
 
   tasks:
     - name: Remove 80-net-setup-link.rules
