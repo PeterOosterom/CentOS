@@ -1,0 +1,78 @@
+---
+- name: Gather Host Information and Create CSV
+  hosts: localhost
+  gather_facts: no
+
+  tasks:
+    - name: Create the CSV file if it doesn't exist
+      command: touch "/home/poosterom/test20.csv"
+      changed_when: false
+
+    - name: Generate CSV header
+      set_fact:
+        csv_header: "Hostname,Host Group,Hypervisor,CPU Model Name,Docker Installed,Docker Command Output,Ansible Output"
+      delegate_to: localhost
+
+    - name: Write the header to the CSV file
+      lineinfile:
+        line: "{{ csv_header }}"
+        path: "/home/poosterom/test20.csv"
+        insertbefore: 1
+
+- name: Gather Host Information and Create CSV Rows
+  hosts: hosts
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Check if virt-what is installed
+      command: virt-what --version
+      ignore_errors: yes
+      register: virtwhat_check
+
+    - name: Check if Docker is installed
+      command: docker --version
+      ignore_errors: yes
+      register: docker_check
+
+    - name: Run Docker Command
+      command: docker run redhat/ubi9-micro echo okay
+      ignore_errors: yes
+      
+    - name: Run Docker Command
+      command: docker run redhat/ubi9-micro echo okay
+      register: docker_output
+      ignore_errors: yes
+      failed_when: docker_output.failed or docker_output.rc != 0
+      changed_when: false
+
+    - name: Gather Hypervisor Information
+      command: virt-what
+      register: hypervisor_info
+      changed_when: false
+      ignore_errors: yes
+      
+    - name: Gather CPU Model Name
+      set_fact:
+        cpu_model: "{{ ansible_processor[2] if ansible_processor else 'N/A' }}"
+      delegate_to: localhost
+
+    - name: Generate CSV content
+      delegate_to: localhost
+      set_fact:
+        csv_content: "{{ inventory_hostname }},{{ group_names | join('. ') }},{{ hypervisor_info.stdout | default('N/A') | regex_replace('\n', ' ') }},{{ cpu_model | default('N/A') }},{{ 'Yes' if not docker_check.failed else 'No' }},{{ docker_output.stdout | default('N/A') | regex_replace('\n', ' ') }},{{ docker_output.stderr | default('N/A') | regex_replace('\n', ' ') }}"
+      changed_when: false
+
+    - name: Append CSV content to file
+      delegate_to: localhost
+      lineinfile:
+        line: "{{ csv_content }}"
+        path: "/home/poosterom/test20.csv"
+
+    - name: remove docker stuff
+      shell: >-
+        docker ps -a --format "{{ "{{.ID}}" }} {{ "{{.Command}}" }}" |
+        grep "echo okay" |
+        awk '{print $1}' |
+        xargs -r docker rm
+
