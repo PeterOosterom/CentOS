@@ -61,10 +61,15 @@
           name: git
           state: latest
 
-      - name: Check if base repo exists
-        stat:
-          path: "/etc/yum.repos.d/CentOS-Base.repo"
-        register: repo
+      - name: Remove old repos 
+        ansible.builtin.file:
+          state: absent 
+          path: /etc/yum.repos.d/
+
+      - name: Remove old repos 
+        ansible.builtin.file:
+          state: directory 
+          path: /etc/yum.repos.d/
 
       - name: Copy centos base repo from Github
         git:
