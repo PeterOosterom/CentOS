@@ -1,6 +1,6 @@
 ---
 - name: Update CentOS and Ubuntu systems
-  hosts: directadmin:digistate:m4m:m4m_infra:nebula:digilastic
+  hosts: test
   become: yes
   tasks:
     - name: Update CentOS packages
