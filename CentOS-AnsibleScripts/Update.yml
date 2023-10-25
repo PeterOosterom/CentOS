@@ -1,15 +1,16 @@
 ---
 - name: Update CentOS and Ubuntu systems
-  hosts: test2
-  become: yes  # This allows Ansible to use sudo or become user
-
+  hosts: directadmin:digistate:m4m:m4m_infra:nebula:digilastic
+  become: yes
   tasks:
     - name: Update CentOS packages
       when: "'CentOS' in ansible_distribution"
       yum:
         name: '*'
+        skip_broken: true
         state: latest
       register: centos_update_result
+
 
     - name: Update Ubuntu packages
       when: "'Ubuntu' in ansible_distribution"
@@ -25,10 +26,28 @@
         upgrade: dist
       register: debian_update_result
 
+
+    - name: Update CloudLinux packages
+      when: "'CloudLinux' in ansible_distribution"
+      yum:
+        name: '*'
+        skip_broken: true
+        state: latest
+      register: CloudLinux_update_result
+
+    - name: Update AlmaLinux packages
+      when: "'AlmaLinux' in ansible_distribution"
+      yum:
+        name: '*'
+        skip_broken: true
+        state: latest
+      register: AlmaLinux_update_result
+
+
     - name: Save logs to a file
       copy:
         content: |
-   
+
           CentOS Update Log:
           {{ centos_update_result | to_nice_json }}
 
@@ -37,6 +56,12 @@
 
           Debian Update Log:
           {{ debian_update_result | to_nice_json }}
+
+          CloudLinux Update Log:
+          {{ CloudLinux_update_result | to_nice_json }}
+
+          AlmaLinux Update Log:
+          {{ AlmaLinux_update_result | to_nice_json }}
 
         dest: /var/logs/update_logs.txt
       delegate_to: localhost
