@@ -1,38 +1,21 @@
----
-- name: Disable Consistent Network Device Naming (CNDN)
-  hosts: "{{ target_host }}"
-  become: yes  # Ensure you have necessary privileges
-  tasks:
-    - name: Remove 80-net-setup-link.rules
-      file:
-        path: /etc/udev/rules.d/80-net-setup-link.rules
-        state: absent
-      notify: Reload udev
 
-    - name: Configure Grub to Disable CNDN
-      lineinfile:
-        path: /etc/default/grub
-        regexp: '^GRUB_CMDLINE_LINUX='
-        line: 'GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"'
-      notify: Update Grub
-
-  handlers:
-    - name: Reload udev
-      systemd:
-        name: systemd-udevd
-        state: restarted
-
-    - name: Update Grub
-      command: grub2-mkconfig -o /boot/grub2/grub.cfg
-      
 - name: Centos pre-upgrade
   hosts: "{{ target_host }}"
   become: yes
   become_user: root
   vars:
     ansible_python_interpreter: /usr/bin/python3
+  vars_prompt:
+    - name: confirm_target
+      prompt: "Is '{{ target_host }}' the correct target host? (yes/no)"
+      private: no
   tasks:
 
+    - name: Confirm target host
+      fail:
+        msg: "Aborted playbook execution. Confirm target host before proceeding."
+      when: confirm_target != "yes"
+        
     - name: Check CentOS version
       command: cat /etc/centos-release
       register: centos_release
