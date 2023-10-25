@@ -51,6 +51,11 @@
       - name: Backup current iptables rules
         shell: iptables-save > /var/temp/backup/iptables.rules
         
+      - name: remove old backups backup of network scripts
+        ansible.builtin.file:
+          state: absent 
+          path: /var/temp/backup/network-scripts-backup/
+
       - name: Create a backup of network scripts
         become: yes
         become_method: sudo
@@ -91,10 +96,10 @@
           name: httpd
           state: latest
 
-      - name: ensure apache is running
+      - name: stop apache
         service:
           name: httpd
-          state: started
+          state: stopped
 
       - name: Install system updates for centos systems
         yum:

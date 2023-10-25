@@ -65,8 +65,6 @@
         become: yes
         command: cp -r /etc/sysconfig/network-scripts/ /var/temp/backup/network-scripts-backup
 
-
-
       - name: remove broken packages
         dnf:
           name: iptables 
