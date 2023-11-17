@@ -56,15 +56,6 @@
       - name: Backup current iptables rules
         shell: iptables-save > /var/temp/backup/iptables.rules
 
-      - name: remove old backups backup of network scripts
-        ansible.builtin.file:
-          state: absent 
-          path: /var/temp/backup/network-scripts-backup/
-
-      - name: Create a backup of network scripts
-        become: yes
-        command: cp -r /etc/sysconfig/network-scripts/ /var/temp/backup/network-scripts-backup
-
       - name: remove broken packages
         dnf:
           name: iptables 
