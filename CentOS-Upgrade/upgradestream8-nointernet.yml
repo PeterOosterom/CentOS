@@ -43,6 +43,11 @@
         path: /var/temp/
         state: directory
 
+    - name: Create files directory
+      file:
+        path: /var/temp/files/
+        state: directory
+          
     - name: Create backup directory
       file:
         path: /var/temp/backup/
