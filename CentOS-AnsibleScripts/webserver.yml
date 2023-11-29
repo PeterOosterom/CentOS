@@ -63,13 +63,8 @@
         line: 'PubkeyAuthentication yes'
         state: present
 
-    - name: Configure Fail2ban
-      copy:
-        remote_src: /etc/fail2ban/jail.conf
-        dest: /etc/fail2ban/jail.local
-        owner: root
-        group: root
-        mode: '0644'
+    - name: Copy Fail2ban configuration
+      command: cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
       notify: Restart Fail2ban
 
     - name: Obtain SSL certificate from Let's Encrypt
