@@ -1,0 +1,42 @@
+---
+- name: Install and configure web server and firewall
+  hosts: your_target_host
+  become: true
+
+  tasks:
+    - name: Update the package cache
+      dnf:
+        name: '*'
+        state: latest
+      register: update_cache
+
+    - name: Install required packages
+      dnf:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - httpd
+        - iptables
+        - iptables-services
+        - git
+      when: update_cache.changed
+
+    - name: Start and enable httpd service
+      systemd:
+        name: httpd
+        state: started
+        enabled: yes
+
+    - name: Allow SSH access from specific IPs
+      command: iptables -A INPUT -p tcp --dport 22 -s {{ item }} -j ACCEPT
+      with_items:
+        - 0.0.0.0 #allow ssh connections from this ip
+
+    - name: Allow HTTP (port 80) from anywhere
+      command: iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+
+    - name: Allow HTTPS (port 443) from anywhere
+      command: iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+
+    - name: Drop all other incoming traffic
+      command: iptables -A INPUT -j DROP
