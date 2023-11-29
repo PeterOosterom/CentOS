@@ -43,6 +43,11 @@
           path: /var/temp/
           state: directory
 
+      - name: Create files directory
+        file:
+          path: /var/temp/files/
+          state: directory
+
       - name: Create backup directory
         file:
           path: /var/temp/backup/
@@ -68,7 +73,7 @@
 
       - name: ensure ELevate
         yum:
-          name: "http://repo.almalinux.org/elevate/elevate-release-latest-el7.noarch.rpm"
+          name: /var/temp/files/elevate.rpm"
           state: present
 
       - name: ensure leapp-upgrade
