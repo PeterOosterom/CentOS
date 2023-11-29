@@ -79,7 +79,7 @@
 
       - name: ensure ELevate
         yum:
-          name: /var/temp/files/elevate.rpm"
+          name: /var/temp/files/elevate.rpm
           state: present
 
       - name: ensure leapp-upgrade
