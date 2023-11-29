@@ -95,7 +95,18 @@
         yum:
           name: dnf
           state: present
+      - name: Update /etc/hosts with repo.almalinux.org IP
+        lineinfile:
+          path: /etc/hosts
+          line: "67.222.0.50 repo.almalinux.org"
+        become: yes
 
+      - name: Add entry for ftp.nluug.nl to /etc/hosts
+        lineinfile:
+          path: /etc/hosts
+          line: "145.220.21.40 ftp.nluug.nl"
+        become: yes
+        
       - name: ensure ELevate
         yum:
           name: /var/temp/files/elevate.rpm
