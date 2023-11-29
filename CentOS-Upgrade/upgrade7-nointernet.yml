@@ -1,1 +1,314 @@
+---
+  - name: Centos pre-upgrade
+    hosts: "{{ target_host }}"
+    become: yes
+    become_user: root
+    vars:
+      ansible_python_interpreter: /usr/bin/python2
+    vars_prompt:
+      - name: confirm_target
+        prompt: "Is '{{ target_host }}' the correct target host? (yes/no)"
+        private: no
+    tasks:
 
+      - name: Confirm target host
+        fail:
+          msg: "Aborted playbook execution. Confirm target host before proceeding."
+        when: confirm_target != "yes"
+    
+      - name: Check CentOS version
+        command: cat /etc/centos-release
+        register: centos_release
+        changed_when: false
+        failed_when: false
+
+      - name: Ensure playbook only runs on CentOS 7
+        fail:
+          msg: "This playbook is intended to run on CentOS 7 only."
+        when: "'CentOS Linux release 7' not in centos_release.stdout"
+        
+      - name: Gather package facts
+        package_facts:
+          manager: auto
+        register: package_facts
+
+      - name: Check if PostgreSQL 15 is installed
+        assert:
+          that:
+            - "'postgresql15-server' in package_facts.ansible_facts.packages"
+          fail_msg: "This playbook is intended to run on machines with PostgreSQL 15 installed."
+
+      - name: Create temp directory
+        file:
+          path: /var/temp/
+          state: directory
+
+      - name: Create backup directory
+        file:
+          path: /var/temp/backup/
+          state: directory
+
+      - name: Backup current iptables rules
+        shell: iptables-save > /var/temp/backup/iptables.rules
+
+      - name: stop apache
+        service:
+          name: httpd
+          state: stopped
+
+      - name: clean yum
+        command: /bin/yum clean all 
+        args:
+          warn: false
+
+      - name: Install DNF
+        yum:
+          name: dnf
+          state: present
+
+      - name: ensure ELevate
+        yum:
+          name: "http://repo.almalinux.org/elevate/elevate-release-latest-el7.noarch.rpm"
+          state: present
+
+      - name: ensure leapp-upgrade
+        yum:
+          name: leapp-upgrade
+          state: present
+
+      - name: ensure leapp-data-centos
+        yum:
+          name: leapp-data-centos
+          state: present
+           
+      - name: ensure yum-utils
+        yum:
+          name: yum-utils
+          state: present
+
+
+      - name: Remove old kernels
+        command: package-cleanup -y --oldkernels --count=1
+
+        
+      - name: create leapp directory
+        file:
+          path: /var/log/leapp/
+          state: directory
+
+        
+      - name: create leapp answerfile
+        copy:
+          dest: /var/log/leapp/answerfile
+          content: |
+            [remove_pam_pkcs11_module_check]
+            confirm = True
+
+        
+      - name: Cleanup previous preupgrade reports
+        file:
+          path: '{{ item }}'
+          state: absent
+        loop:
+          - /var/log/leapp/leapp-report.txt
+          - /var/log/leapp/leapp-report.json
+
+        
+      - name: Generate leapp preupgrade report
+        command: leapp preupgrade
+        args:
+          creates: /var/log/leapp/leapp-report.txt
+        register: leapp_preupgrade
+
+        
+      - name: Debug leapp preupgrade output
+        debug:
+          var: leapp_preupgrade
+          verbosity: 2
+
+        
+      - name: Upgrade
+        command: leapp upgrade
+  
+      - name: Reboot host and wait for it to restart
+        reboot:
+          msg: "Reboot initiated by Ansible"
+          connect_timeout: 5
+          reboot_timeout: 1200
+          pre_reboot_delay: 0
+          post_reboot_delay: 30
+          test_command: whoami
+
+ 
+  - name: Centos post-upgrade
+    hosts: "{{ target_host }}"
+    become: yes
+    become_user: root
+    vars:
+      ansible_python_interpreter: /usr/bin/python3
+    tasks:
+         
+      - name: create python symlink
+        command: ln -fs /usr/bin/python2 /usr/bin/python
+        args:
+          warn: false
+          
+      - name: ensure postgres repo
+        command: dnf -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+        args:
+          warn: false
+
+      - name: ensure docker repo
+        command: dnf -y config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+        args:
+          warn: false
+
+      - name: disable default postgres repo
+        command: dnf module -y disable postgresql
+        args:
+          warn: false
+
+      - name: clean yum
+        command: /bin/yum clean all 
+        args:
+          warn: false
+
+      - name: ensure postgresql15-server
+        dnf:
+          name: postgresql15-server
+          state: present
+
+
+      - name: Check if PostgreSQL database is initialized.
+        stat:
+          path: "/var/lib/pgsql/15/data/pg_hba.conf"
+        register: postgres
+
+      - name: Ensure PostgreSQL database is initialized.
+        command: "/usr/pgsql-15/bin/postgresql-15-setup initdb"
+        when: not postgres.stat.exists
+
+      - name: ensure apache is at the latest version
+        dnf:
+          name: httpd
+          state: latest
+
+      - name: ensure docker-ce is at the latest version
+        dnf:
+          name: docker-ce
+          state: latest
+          
+      - name: ensure apache is running
+        systemd:
+          name: httpd
+          state: started
+          enabled: true
+          masked: no
+   
+      - name: Enable postgres service
+        systemd:
+          name: postgresql-15.service
+          enabled: true
+          masked: no
+          state: started
+
+      - name: ensure iptables is at the latest version
+        dnf:
+          name: iptables
+          state: latest
+
+      - name: ensure iptables-services is at the latest version
+        dnf:
+          name: iptables-services
+          state: latest
+
+
+      - name: ensure vim is at the latest version
+        dnf:
+          name: vim
+          state: latest
+          
+      - name: ensure iptables is running
+        systemd:
+          name: iptables
+          state: started
+          enabled: true
+          masked: no
+          
+      - name: restore iptables rules
+        shell: sudo cp /var/temp/backup/iptables.rules /etc/sysconfig/iptables
+        
+      - name: remove firewalld
+        dnf:
+          name: firewalld
+          state: absent
+
+      - name: Install system updates for centos systems
+        dnf:
+          name: '*'
+          state: latest
+          update_cache: yes
+          
+      - name: Get list of installed kernel-related packages
+        command: rpm -qa kernel\* kernel-devel\* kernel-modules\* kernel-modules-extra\* kernel-workaround\*
+        register: installed_kernel_related_packages
+        changed_when: false
+
+      - name: Remove CentOS 7 kernel-related packages
+        yum:
+          name: "{{ item }}"
+          state: absent
+        loop: "{{ installed_kernel_related_packages.stdout_lines }}"
+        when: "'el7' in item"
+
+      - name: Remove Leapp deps
+        command: dnf remove -y yum-plugin-fastestmirror leapp elevate python2-leapp elevate-release leapp-data-centos btrfs-progs leapp-repository-deps-el8 --disableexcludes=all
+        args:
+          warn: false
+          
+      - name: Reboot host and wait for it to restart
+        reboot:
+          msg: "Reboot initiated by Ansible"
+          connect_timeout: 5
+          reboot_timeout: 600
+          pre_reboot_delay: 0
+          post_reboot_delay: 30
+          test_command: whoami
+
+  - name: Refresh COLLATION VERSION in all databases
+    hosts: "{{ target_host }}"
+    become: yes
+    become_user: postgres
+    tasks:
+      - name: Get hostname
+        command: hostname
+        register: hostname_result
+
+      - name: Set db_name based on hostname
+        set_fact:
+          db_name: "{{ hostname_result.stdout | lower | regex_replace('\\..*', '') }}"
+
+      - name: Check if the database exists
+        shell: psql -lqt | cut -d \| -f 1 | grep -qw "{{ db_name }}"
+        register: db_exists
+        ignore_errors: yes
+
+      - name: Refresh COLLATION VERSION for main database
+        command: psql -d {{ db_name }} -c "SELECT pg_reload_conf();"
+        args:
+          warn: false
+        when: db_exists.rc == 0
+
+      - name: Refresh COLLATION VERSION for default postgres database
+        command: psql -c "ALTER DATABASE postgres REFRESH COLLATION VERSION"
+        args:
+          warn: false
+
+      - name: Refresh COLLATION VERSION for default template1 database
+        command: psql -c "ALTER DATABASE template1 REFRESH COLLATION VERSION"
+        args:
+          warn: false
+
+
+
+            
