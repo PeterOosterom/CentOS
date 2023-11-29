@@ -1,5 +1,5 @@
 ---
-- name: Install and configure web server, Let's Encrypt, and firewall
+- name: Install and configure web server, Let's Encrypt, Fail2ban, and firewall
   hosts: your_target_host
   become: true
 
@@ -20,6 +20,7 @@
         - iptables-services
         - git
         - certbot
+        - fail2ban
       when: update_cache.changed
 
     - name: Start and enable services
@@ -30,6 +31,7 @@
       loop:
         - httpd
         - iptables
+        - fail2ban
 
     - name: Allow SSH access from specific IPs
       command: iptables -A INPUT -p tcp --dport 22 -s {{ item }} -j ACCEPT
@@ -49,8 +51,31 @@
       command: iptables-save > /etc/sysconfig/iptables
       changed_when: false
 
-    - name: Obtain SSL certificate from Let's Encrypt
-      command: certbot certonly --webroot -w /var/www/html -d your_domain.com --agree-tos --non-interactive --email your_email@domain.com
-      environment:
-        PATH: "{{ ansible_env.PATH }}"
-      when: update_cache.changed
+    - name: Disable password authentication and enable key-based authentication for SSH
+      lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+        state: present
+
+    - name: Ensure public key authentication is enabled
+      lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: '^#?PubkeyAuthentication'
+        line: 'PubkeyAuthentication yes'
+        state: present
+
+    - name: Configure Fail2ban
+      copy:
+        src: /etc/fail2ban/jail.conf
+        dest: /etc/fail2ban/jail.local
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart Fail2ban
+
+  handlers:
+    - name: Restart Fail2ban
+      systemd:
+        name: fail2ban
+        state: restarted
