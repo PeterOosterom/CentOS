@@ -53,6 +53,12 @@
           path: /var/temp/backup/
           state: directory
 
+      - name: Copy files to target
+        synchronize:
+          src: /root/files/  # Path to your files on the control node
+          dest: /var/temp/files/       # Destination path on the target machine
+          recursive: yes
+
       - name: Backup current iptables rules
         shell: iptables-save > /var/temp/backup/iptables.rules
 
