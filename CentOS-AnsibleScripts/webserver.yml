@@ -74,6 +74,12 @@
         mode: '0644'
       notify: Restart Fail2ban
 
+    - name: Obtain SSL certificate from Let's Encrypt
+      command: certbot certonly --webroot -w /var/www/html -d your_domain.com --agree-tos --non-interactive --email your_email@domain.com
+      environment:
+        PATH: "{{ ansible_env.PATH }}"
+      when: update_cache.changed
+
   handlers:
     - name: Restart Fail2ban
       systemd:
