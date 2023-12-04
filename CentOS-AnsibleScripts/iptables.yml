@@ -1,0 +1,26 @@
+---
+- name: Configure iptables rules
+  hosts: centos7testvm  # Replace with your server's hostname or IP
+  become: yes
+
+  tasks:
+    - name: Install iptables and iptables-services
+      yum:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - iptables
+        - iptables-services
+      become: yes
+
+    - name: Configure iptables rules
+      template:
+        src: iptables-rules.j2
+        dest: /etc/sysconfig/iptables
+      notify: restart iptables
+
+  handlers:
+    - name: restart iptables
+      service:
+        name: iptables
+        state: restarted
