@@ -67,12 +67,20 @@
           name: httpd
           state: stopped
 
+      - name: Find and remove CentOS repos
+        shell: rm -f /etc/yum.repos.d/CentOS*.repo
+        ignore_errors: true
+
       - name: Install system updates for centos systems
         yum:
           name: '*'
           state: latest
           update_cache: yes
          #cache_valid_time: 3600
+
+      - name: Find and remove CentOS repos
+        shell: rm -f /etc/yum.repos.d/CentOS*.repo
+        ignore_errors: true
 
 
 #reboot zodat eventuele nieuwe kernels gebruikt worden
