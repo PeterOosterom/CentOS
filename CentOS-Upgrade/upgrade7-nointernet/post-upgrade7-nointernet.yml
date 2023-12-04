@@ -41,11 +41,6 @@
       args:
         warn: false
 
-    - name: ensure postgres repo
-      yum:
-        name: /var/temp/files/postgres.rpm
-        state: present
-
     - name: disable default postgres repo
       command: dnf module -y disable postgresql
       args:
