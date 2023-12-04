@@ -66,17 +66,10 @@
         name: iptables 
         state: absent
 
-  
-    - name: Remove centos 8 repos
-      ansible.builtin.file:
-        state: absent 
-        path: /etc/yum.repos.d/
+    - name: Find and remove CentOS repos
+      shell: rm -f /etc/yum.repos.d/CentOS*.repo
+      ignore_errors: true
 
-    - name: Remove centos 8 repos 
-      ansible.builtin.file:
-        state: directory 
-        path: /etc/yum.repos.d/
-          
     - name: remove broken packages
       dnf:
         name: make-devel-1:4.2.1-11.el8.x86_64 
