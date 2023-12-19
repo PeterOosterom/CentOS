@@ -290,7 +290,7 @@
           masked: no
 
 
-      - name: ensure logrotate is running
+      - name: ensure docker is running
         systemd:
           name: docker
           state: started
