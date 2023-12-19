@@ -51,11 +51,11 @@
       command: dnf clean packages
       args:
         warn: false
-		
+
     - name: Find and remove CentOS repos
       shell: rm -f /etc/yum.repos.d/CentOS*.repo
       ignore_errors: true
-	  
+
     - name: Install system updates for centos systems
       yum:
         name: '*'
