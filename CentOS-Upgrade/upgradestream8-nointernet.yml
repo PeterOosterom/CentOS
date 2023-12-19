@@ -1,4 +1,3 @@
-
 - name: Centos pre-upgrade
   hosts: "{{ target_host }}"
   become: yes
@@ -38,48 +37,6 @@
           - "'postgresql15-server' in package_facts.ansible_facts.packages"
         fail_msg: "This playbook is intended to run on machines with PostgreSQL 15 installed."
 
-    - name: Create temp directory
-      file:
-        path: /var/temp/
-        state: directory
-
-    - name: Create files directory
-      file:
-        path: /var/temp/files/
-        state: directory
-          
-    - name: Create backup directory
-      file:
-        path: /var/temp/backup/
-        state: directory
-          
-    - name: ensure iptables-services is installed
-      dnf:
-        name: iptables-services
-        state: latest
-          
-    - name: Backup current iptables rules
-      shell: iptables-save > /var/temp/backup/iptables.rules
-
-    - name: remove broken packages
-      dnf:
-        name: iptables 
-        state: absent
-
-    - name: Find and remove CentOS repos
-      shell: rm -f /etc/yum.repos.d/CentOS*.repo
-      ignore_errors: true
-
-    - name: remove broken packages
-      dnf:
-        name: make-devel-1:4.2.1-11.el8.x86_64 
-        state: absent
-
-    - name: clean yum
-      command: /bin/yum clean all 
-      args:
-        warn: false
-
     - name: update/upgrade centos to 9
       command: dnf -y --releasever=9-stream --allowerasing --setopt=deltarpm=false distro-sync
       args:
@@ -94,13 +51,21 @@
       command: dnf clean packages
       args:
         warn: false
-
+		
+    - name: Find and remove CentOS repos
+      shell: rm -f /etc/yum.repos.d/CentOS*.repo
+      ignore_errors: true
+	  
     - name: Install system updates for centos systems
       yum:
         name: '*'
         state: latest
         update_cache: yes
-
+		
+    - name: Find and remove CentOS repos
+      shell: rm -f /etc/yum.repos.d/CentOS*.repo
+      ignore_errors: true
+	  
     - name: groupupdate
       command: dnf -y groupupdate "Core" "Minimal Install" --allowerasing
       args:
@@ -135,16 +100,6 @@
         state: directory 
         path: /etc/dnf/modules.d
           
-    - name: ensure wget
-      dnf:
-        name: wget
-        state: latest
-
-    - name: get packages 
-      command: wget https://dl.rockylinux.org/pub/rocky/9/AppStream/x86_64/os/Packages/m/man-pages-overrides-9.0.0.0-1.el9.noarch.rpm http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/libfido2-1.6.0-7.el9.x86_64.rpm http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/libcbor-0.7.0-5.el9.x86_64.rpm http://mirror.stream.centos.org/9-stream/AppStream/x86_64/os/Packages/javapackages-filesystem-6.0.0-3.el9.noarch.rpm https://kojihub.stream.centos.org/kojifiles/packages/xorg-x11-font-utils/7.5/53.el9/x86_64/xorg-x11-font-utils-7.5-53.el9.x86_64.rpm http://rpmfind.net/linux/epel/9/Everything/x86_64/Packages/r/rcs-5.10.1-3.el9.x86_64.rpm http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/Packages/authd-1.4.4-5.el8_0.1.x86_64.rpm http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/Packages/xinetd-2.3.15-24.el8.x86_64.rpm  
-      args:
-        warn: false
-
     - name: install packages
       command: yum localinstall -y man-pages-overrides-9.0.0.0-1.el9.noarch.rpm libfido2-1.6.0-7.el9.x86_64.rpm libcbor-0.7.0-5.el9.x86_64.rpm javapackages-filesystem-6.0.0-3.el9.noarch.rpm xorg-x11-font-utils-7.5-53.el9.x86_64.rpm authd-1.4.4-5.el8_0.1.x86_64.rpm rcs-5.10.1-3.el9.x86_64.rpm xinetd-2.3.15-24.el8.x86_64.rpm
       args:
