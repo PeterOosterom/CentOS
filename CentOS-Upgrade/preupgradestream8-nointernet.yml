@@ -59,9 +59,9 @@
         recursive: yes          
 
     - name: remove broken packages
-      dnf:
-        name: iptables 
-        state: absent
+      command: sudo yum -y remove iptables
+      args:
+        warn: false
 
     - name: remove broken packages
       dnf:
