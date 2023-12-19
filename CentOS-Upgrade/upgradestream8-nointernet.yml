@@ -61,11 +61,11 @@
         name: '*'
         state: latest
         update_cache: yes
-		
+
     - name: Find and remove CentOS repos
       shell: rm -f /etc/yum.repos.d/CentOS*.repo
       ignore_errors: true
-	  
+  
     - name: groupupdate
       command: dnf -y groupupdate "Core" "Minimal Install" --allowerasing
       args:
