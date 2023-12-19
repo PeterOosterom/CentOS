@@ -78,7 +78,8 @@
       command: dnf -y groupupdate "Core" "Minimal Install" --allowerasing
       args:
         warn: false
-          
+
+
     - name: Remove rescue kernel
       command: rm -f /boot/vmlinuz-0-rescue-b2a198ecbfdd451cb905f76f825af01e /boot/initramfs-0-rescue-b2a198ecbfdd451cb905f76f825af01e.img /boot/loader/entries/b2a198ecbfdd451cb905f76f825af01e-0-rescue.conf
       args:
@@ -232,7 +233,14 @@
         state: started
         enabled: true
         masked: no
-
+        
+    - name: ensure docker is running
+      systemd:
+        name: docker
+        state: started
+        enabled: true
+        masked: no
+        
     - name: Get list of installed kernel-related packages
       command: rpm -qa kernel\* kernel-devel\* kernel-modules\* kernel-modules-extra\* kernel-workaround\*
       register: installed_kernel_related_packages
