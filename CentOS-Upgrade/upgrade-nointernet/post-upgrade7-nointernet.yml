@@ -136,6 +136,11 @@
       args:
         warn: false
 
+    - name: remove temp files 
+      ansible.builtin.file:
+        state: absent 
+        path: /var/temp/files/
+
     - name: Reboot host and wait for it to restart
       reboot:
         msg: "Reboot initiated by Ansible"

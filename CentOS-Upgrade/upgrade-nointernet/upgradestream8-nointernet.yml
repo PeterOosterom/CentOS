@@ -253,6 +253,11 @@
       loop: "{{ installed_kernel_related_packages.stdout_lines }}"
       when: "'el8' in item"
         
+    - name: remove temp files 
+      ansible.builtin.file:
+        state: absent 
+        path: /var/temp/files/
+        
 - name: Refresh COLLATION VERSION in all databases
   hosts: "{{ target_host }}"
   become: yes
