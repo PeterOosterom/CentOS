@@ -1,0 +1,20 @@
+---
+  - name: Centos pre-upgrade
+    hosts: "{{ target_host }}"
+    become: yes
+    become_user: root
+    tasks:
+      - name: Create temp directory
+        file:
+          path: /var/temp/
+          state: directory
+
+      - name: Create files directory
+        file:
+          path: /var/temp/files/
+          state: directory
+      - name: Copy files to target
+        synchronize:
+          src: ~/files/  # Path to your files on the control node
+          dest: /var/temp/files/       # Destination path on the target machine
+          recursive: yes
