@@ -132,10 +132,19 @@
           state: directory 
           path: /etc/yum.repos.d/
                    
-      - name: ensure Centos 9 repos
-        command: dnf install -y http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-stream-repos-9.0-23.el9.noarch.rpm http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-stream-release-9.0-23.el9.noarch.rpm http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-gpg-keys-9.0-23.el9.noarch.rpm
-        args:
-          warn: false
+      - name: Fetch CentOS Stream 9 repo URLs
+        shell: |
+          curl -s https://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/ | grep -oP '(?<=href=")centos-stream-release-9\.[0-9]+-[0-9]+\.el9\.noarch\.rpm'|sort|tail -n 1 | grep -oE '9\.[0-9]+-[0-9]+'
+        register: latest_version
+        changed_when: false
+      
+      - name: Install CentOS Stream 9 RPMs
+        dnf:
+          name:
+          - https://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-stream-release-{{latest_version.stdout}}.el9.noarch.rpm
+          - https://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-stream-repos-{{latest_version.stdout}}.el9.noarch.rpm
+          - https://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-gpg-keys-{{latest_version.stdout}}.el9.noarch.rpm
+          state: present
           
       - name: remove broken packages
         dnf:
