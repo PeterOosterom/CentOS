@@ -1,0 +1,19 @@
+---
+- name: Check if xe-guest-utilities-latest.x86_64 package is installed
+  hosts: all
+  tasks:
+    - name: Check if xe-guest-utilities-latest.x86_64 is installed
+      become: true
+      command: yum list installed xe-guest-utilities-latest.x86_64
+      register: yum_output
+      ignore_errors: true
+
+    - name: Print message based on package status
+      debug:
+        msg: "xe-guest-utilities-latest.x86_64 is installed."
+      when: yum_output.rc == 0
+
+    - name: Print message if xe-guest-utilities-latest.x86_64 is not installed
+      debug:
+        msg: "xe-guest-utilities-latest.x86_64 is not installed."
+      when: yum_output.rc != 0
