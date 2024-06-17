@@ -1,10 +1,15 @@
 ---
   - name: Centos pre-upgrade
-    hosts: "{{ target_host }}"
+    hosts: '{{ target_host }}'
     become: yes
     become_user: root
     vars:
       ansible_python_interpreter: /usr/bin/python3
+      interface_rename_map:
+        eth: enx
+        em: ens
+        eno: eno
+        enx: enx
     vars_prompt:
       - name: confirm_target
         prompt: "Is '{{ target_host }}' the correct target host? (yes/no)"
@@ -61,7 +66,56 @@
           name: iptables 
           state: absent
 
-  
+      - name: Gather current network interface name
+        shell: ip -o link show | awk '$2 != "lo:" {print $2}'
+        register: current_interfaces
+        changed_when: false
+        failed_when: false
+
+      - name: Extract current interface name
+        set_fact:
+          current_interface: "{{ current_interfaces.stdout_lines[0] | regex_replace(':$', '') }}"
+
+      - name: Predict new interface name based on current name
+        set_fact:
+          new_interface: >-
+            {% if current_interface.startswith('eth') %}
+              {{ current_interface | regex_replace('^eth', interface_rename_map['eth']) }}
+            {% elif current_interface.startswith('em') %}
+              {{ current_interface | regex_replace('^em', interface_rename_map['em']) }}
+            {% elif current_interface.startswith('eno') %}
+              {{ current_interface }}
+            {% elif current_interface.startswith('enx') %}
+              {{ current_interface }}
+            {% else %}
+              {{ current_interface }}
+            {% endif %}
+
+      - name: Ensure network-scripts directory exists
+        file:
+          path: /etc/sysconfig/network-scripts
+          state: directory
+
+      - name: Rename network configuration file if needed
+        when: current_interface != new_interface
+        block:
+          - name: Copy network configuration file to new interface name
+            copy:
+              src: "/etc/sysconfig/network-scripts/ifcfg-{{ current_interface }}"
+              dest: "/etc/sysconfig/network-scripts/ifcfg-{{ new_interface }}"
+              remote_src: yes
+
+          - name: Update interface name in configuration file
+            lineinfile:
+              path: "/etc/sysconfig/network-scripts/ifcfg-{{ new_interface }}"
+              regexp: '^DEVICE='
+              line: "DEVICE={{ new_interface }}"
+
+          - name: Remove old network configuration file
+            file:
+              path: "/etc/sysconfig/network-scripts/ifcfg-{{ current_interface }}"
+              state: absent
+    
       - name: Remove centos 8 repos
         ansible.builtin.file:
           state: absent 
